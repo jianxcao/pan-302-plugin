@@ -24,3 +24,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Local executable binaries
+bin/
+
