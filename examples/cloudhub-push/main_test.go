@@ -2,23 +2,27 @@ package main
 
 import (
 	"testing"
+
+	pb "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1"
 )
 
 func TestResourceFromEvent(t *testing.T) {
-	event := StrmEvent{
-		EventID: "event-1",
+	event := pb.StrmEvent{
+		EventId: "event-1",
 		Event:   "strm.created",
-		Strm:    StrmInfo{CloudPath: "/fallback/movie.mkv"},
-		File: &FileEvent{
-			SHA1:     "abc",
-			PreSHA1:  "def",
+		Strm:    &pb.StrmEventInfo{CloudPath: "/fallback/movie.mkv"},
+		File: &pb.FileSnapshot{
+			Hashes: map[string]string{
+				"sha1":    "abc",
+				"presha1": "def",
+			},
 			Size:     1024,
 			Name:     "Show.S02E08.2025.2160p.HDR.WEB-DL.mkv",
 			Path:     "/TV/Show.S02E08.2025.2160p.HDR.WEB-DL.mkv",
 			PickCode: "pick",
 		},
 	}
-	resource := resourceFromEvent(event)
+	resource := resourceFromEvent(&event)
 	assertEqual(t, "abc", resource.SHA1)
 	assertEqual(t, "Show.S02E08.2025.2160p.HDR.WEB-DL", resource.Title)
 	assertEqual(t, "tv", resource.Type)
