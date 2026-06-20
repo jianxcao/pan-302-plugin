@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "name": "cloudhub-push-settings",
+  "name": "strm-go-example-settings",
   "version": "1.0.0",
   "protocol": "pan302-plugin-ui/v1",
   "mode": "trusted-esm",

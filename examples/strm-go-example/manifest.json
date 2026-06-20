@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "name": "strm-go-example",
+  "version": "1.0.0",
+  "displayName": "Go 示例插件",
+  "description": "极简 Go 语言 STRM 事件监听与配置修改示例插件",
+  "author": "media302",
+  "abi": "pan302-plugin-abi/v2",
+  "wasm": "plugin.wasm",
+  "configVersion": 1,
+  "events": [
+    "strm.created",
+    "strm.deleted"
+  ],
+  "permissions": ["log.write", "config.read"],
+  "ui": {
+    "manifest": "ui/manifest.json",
+    "mode": "trusted-esm"
+  }
+}

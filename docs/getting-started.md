@@ -32,9 +32,10 @@
 
 ## 创建并构建您的第一个插件
 
-本仓库 `examples/` 目录下提供了两个现成的脚手架：
-- `examples/strm-rust-example`: 基于 Rust SDK 编写的示例插件。
-- `examples/cloudhub-push`: 基于 Go SDK 编写的实例插件。
+本项目在对应文件夹下提供了现成的脚手架和参考插件：
+- `examples/strm-rust-example`: 基于 Rust SDK 编写的极简示例插件（含简单前端 UI 演示）。
+- `examples/strm-go-example`: 基于 Go SDK 编写的极简 Go 语言示例插件（含免编译的原生 JavaScript 配置界面）。
+- `plugins/cloudhub-push` [官方插件]: 基于 Go SDK 编写的 CloudHub 资源推送官方正式插件，采用了现代化的 **Vite 编译 + Vue SFC (单文件组件)** 架构。
 
 下面以 Rust 插件开发为例介绍开发流程：
 
@@ -79,3 +80,11 @@ pan302-plugin build ./package-dir --output ./my-plugin.panplugin
 ```
 
 打包出来的 `.panplugin` 文件即可在 pan-302 后台直接上传并激活。
+
+---
+
+## 插件前端 UI 开发
+
+如果您需要为插件开发自定义的控制或配置面板，并希望与宿主**共用同一个 Vue 与 Naive UI 依赖以大幅压缩打包体积并自适应跟随主题**，请务必阅读：
+👉 [插件前端 UI 扩展开发指南](ui-development-guide.md)
+

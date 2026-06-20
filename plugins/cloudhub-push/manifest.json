@@ -16,7 +16,12 @@
     "strm.moved",
     "strm.copied"
   ],
-  "permissions": ["log.write", "config.read", "http.request", "event.strm.read"],
+  "permissions": [
+    "log.write",
+    "config.read",
+    "http.request",
+    "event.strm.read"
+  ],
   "ui": {
     "manifest": "ui/manifest.json",
     "mode": "trusted-esm"

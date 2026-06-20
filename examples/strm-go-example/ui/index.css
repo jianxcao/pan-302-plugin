@@ -1,0 +1,16 @@
+.go-example-settings {
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.plugin-heading {
+  margin-bottom: 24px;
+}
+.plugin-heading h2 {
+  margin: 4px 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.plugin-form {
+  margin-top: 16px;
+}

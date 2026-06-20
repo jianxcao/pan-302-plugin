@@ -40,21 +40,16 @@ function createRootComponent(runtime) {
     NForm,
     NFormItem,
     NInput,
-    NInputNumber,
     NSpace,
     NText,
   } = naive
 
   const SettingsForm = defineComponent({
-    name: 'CloudHubPushSettings',
+    name: 'GoExampleSettings',
     setup() {
       const state = reactive({
         config: {
-          node_id: '',
-          base_url: '',
-          api_key: '',
-          public_base_url: '',
-          batch_size: 500,
+          example_val: '',
         },
         loading: false,
         status: '',
@@ -104,16 +99,16 @@ function createRootComponent(runtime) {
         })
 
       return () =>
-        h('section', { class: 'cloudhub-push-settings' }, [
+        h('section', { class: 'go-example-settings' }, [
           h('header', { class: 'plugin-heading' }, [
             h('div', [
-              h(NText, { depth: 3, class: 'plugin-kicker' }, () => 'CloudHub Push'),
-              h('h2', 'CloudHub 资源推送'),
+              h(NText, { depth: 3, class: 'plugin-kicker' }, () => 'Go Example Plugin'),
+              h('h2', 'Go 极简示例插件配置'),
             ]),
             h(
               NText,
               { depth: 3 },
-              () => 'STRM 创建或删除后，将数据库中的网盘文件快照同步到 CloudHub。',
+              () => '这是一个基于 Go 语言 Wasm 的极简事件监听 Demo，无需本地打包环境即可开发前端面板。',
             ),
           ]),
           state.status
@@ -138,33 +133,10 @@ function createRootComponent(runtime) {
               class: 'plugin-form',
             },
             () => [
-              h(NFormItem, { label: '节点 ID', path: 'node_id' }, () =>
-                textInput('node_id', {
-                  placeholder: '例如 media302',
+              h(NFormItem, { label: '测试参数输入', path: 'example_val' }, () =>
+                textInput('example_val', {
+                  placeholder: '输入点什么以测试保存配置',
                   autocomplete: 'off',
-                }),
-              ),
-              h(NFormItem, { label: 'CloudHub API URL', path: 'base_url' }, () =>
-                textInput('base_url', { placeholder: 'https://cloudhub.example.com' }),
-              ),
-              h(NFormItem, { label: '节点 API Key', path: 'api_key' }, () =>
-                textInput('api_key', {
-                  type: 'password',
-                  showPasswordOn: 'click',
-                  autocomplete: 'new-password',
-                }),
-              ),
-              h(NFormItem, { label: '节点公开 URL（可选）', path: 'public_base_url' }, () =>
-                textInput('public_base_url', { placeholder: 'https://pan.example.com' }),
-              ),
-              h(NFormItem, { label: '单批数量', path: 'batch_size' }, () =>
-                h(NInputNumber, {
-                  value: state.config.batch_size,
-                  min: 1,
-                  max: 500,
-                  'onUpdate:value': value => {
-                    state.config.batch_size = value || 500
-                  },
                 }),
               ),
               h(NSpace, { justify: 'end' }, () =>
@@ -185,7 +157,7 @@ function createRootComponent(runtime) {
   })
 
   return defineComponent({
-    name: 'CloudHubPushPluginRoot',
+    name: 'GoExamplePluginRoot',
     setup() {
       return () =>
         h(

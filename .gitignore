@@ -28,3 +28,10 @@ Thumbs.db
 # Local executable binaries
 bin/
 
+# Frontend dependency and build artifacts
+node_modules/
+out/
+.tmp/
+*.tsbuildinfo
+
+
