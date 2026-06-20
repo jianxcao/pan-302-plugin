@@ -298,142 +298,6 @@ func (x *MigrateResponse) GetConfig() *structpb.Struct {
 	return nil
 }
 
-type HandleHTTPRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Method        string                 `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
-	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
-	Headers       map[string]string      `protobuf:"bytes,3,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Body          []byte                 `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
-	Query         map[string]string      `protobuf:"bytes,5,rep,name=query,proto3" json:"query,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HandleHTTPRequest) Reset() {
-	*x = HandleHTTPRequest{}
-	mi := &file_plugin_v1_lifecycle_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HandleHTTPRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HandleHTTPRequest) ProtoMessage() {}
-
-func (x *HandleHTTPRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_v1_lifecycle_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HandleHTTPRequest.ProtoReflect.Descriptor instead.
-func (*HandleHTTPRequest) Descriptor() ([]byte, []int) {
-	return file_plugin_v1_lifecycle_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *HandleHTTPRequest) GetMethod() string {
-	if x != nil {
-		return x.Method
-	}
-	return ""
-}
-
-func (x *HandleHTTPRequest) GetPath() string {
-	if x != nil {
-		return x.Path
-	}
-	return ""
-}
-
-func (x *HandleHTTPRequest) GetHeaders() map[string]string {
-	if x != nil {
-		return x.Headers
-	}
-	return nil
-}
-
-func (x *HandleHTTPRequest) GetBody() []byte {
-	if x != nil {
-		return x.Body
-	}
-	return nil
-}
-
-func (x *HandleHTTPRequest) GetQuery() map[string]string {
-	if x != nil {
-		return x.Query
-	}
-	return nil
-}
-
-type HandleHTTPResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        int32                  `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
-	Headers       map[string]string      `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Body          []byte                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HandleHTTPResponse) Reset() {
-	*x = HandleHTTPResponse{}
-	mi := &file_plugin_v1_lifecycle_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HandleHTTPResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HandleHTTPResponse) ProtoMessage() {}
-
-func (x *HandleHTTPResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_v1_lifecycle_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HandleHTTPResponse.ProtoReflect.Descriptor instead.
-func (*HandleHTTPResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_v1_lifecycle_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *HandleHTTPResponse) GetStatus() int32 {
-	if x != nil {
-		return x.Status
-	}
-	return 0
-}
-
-func (x *HandleHTTPResponse) GetHeaders() map[string]string {
-	if x != nil {
-		return x.Headers
-	}
-	return nil
-}
-
-func (x *HandleHTTPResponse) GetBody() []byte {
-	if x != nil {
-		return x.Body
-	}
-	return nil
-}
-
 var File_plugin_v1_lifecycle_proto protoreflect.FileDescriptor
 
 const file_plugin_v1_lifecycle_proto_rawDesc = "" +
@@ -456,27 +320,7 @@ const file_plugin_v1_lifecycle_proto_rawDesc = "" +
 	"\x0fMigrateResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x14\n" +
 	"\x05error\x18\x02 \x01(\tR\x05error\x12/\n" +
-	"\x06config\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x06config\"\xcd\x02\n" +
-	"\x11HandleHTTPRequest\x12\x16\n" +
-	"\x06method\x18\x01 \x01(\tR\x06method\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\tR\x04path\x12C\n" +
-	"\aheaders\x18\x03 \x03(\v2).plugin.v1.HandleHTTPRequest.HeadersEntryR\aheaders\x12\x12\n" +
-	"\x04body\x18\x04 \x01(\fR\x04body\x12=\n" +
-	"\x05query\x18\x05 \x03(\v2'.plugin.v1.HandleHTTPRequest.QueryEntryR\x05query\x1a:\n" +
-	"\fHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a8\n" +
-	"\n" +
-	"QueryEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc2\x01\n" +
-	"\x12HandleHTTPResponse\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\x05R\x06status\x12D\n" +
-	"\aheaders\x18\x02 \x03(\v2*.plugin.v1.HandleHTTPResponse.HeadersEntryR\aheaders\x12\x12\n" +
-	"\x04body\x18\x03 \x01(\fR\x04body\x1a:\n" +
-	"\fHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B>Z<github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1b\x06proto3"
+	"\x06config\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x06configB>Z<github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_plugin_v1_lifecycle_proto_rawDescOnce sync.Once
@@ -490,32 +334,24 @@ func file_plugin_v1_lifecycle_proto_rawDescGZIP() []byte {
 	return file_plugin_v1_lifecycle_proto_rawDescData
 }
 
-var file_plugin_v1_lifecycle_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_plugin_v1_lifecycle_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_plugin_v1_lifecycle_proto_goTypes = []any{
-	(*InitRequest)(nil),        // 0: plugin.v1.InitRequest
-	(*PluginIdentity)(nil),     // 1: plugin.v1.PluginIdentity
-	(*LifecycleResponse)(nil),  // 2: plugin.v1.LifecycleResponse
-	(*MigrateRequest)(nil),     // 3: plugin.v1.MigrateRequest
-	(*MigrateResponse)(nil),    // 4: plugin.v1.MigrateResponse
-	(*HandleHTTPRequest)(nil),  // 5: plugin.v1.HandleHTTPRequest
-	(*HandleHTTPResponse)(nil), // 6: plugin.v1.HandleHTTPResponse
-	nil,                        // 7: plugin.v1.HandleHTTPRequest.HeadersEntry
-	nil,                        // 8: plugin.v1.HandleHTTPRequest.QueryEntry
-	nil,                        // 9: plugin.v1.HandleHTTPResponse.HeadersEntry
-	(*structpb.Struct)(nil),    // 10: google.protobuf.Struct
+	(*InitRequest)(nil),       // 0: plugin.v1.InitRequest
+	(*PluginIdentity)(nil),    // 1: plugin.v1.PluginIdentity
+	(*LifecycleResponse)(nil), // 2: plugin.v1.LifecycleResponse
+	(*MigrateRequest)(nil),    // 3: plugin.v1.MigrateRequest
+	(*MigrateResponse)(nil),   // 4: plugin.v1.MigrateResponse
+	(*structpb.Struct)(nil),   // 5: google.protobuf.Struct
 }
 var file_plugin_v1_lifecycle_proto_depIdxs = []int32{
-	1,  // 0: plugin.v1.InitRequest.plugin:type_name -> plugin.v1.PluginIdentity
-	10, // 1: plugin.v1.MigrateRequest.config:type_name -> google.protobuf.Struct
-	10, // 2: plugin.v1.MigrateResponse.config:type_name -> google.protobuf.Struct
-	7,  // 3: plugin.v1.HandleHTTPRequest.headers:type_name -> plugin.v1.HandleHTTPRequest.HeadersEntry
-	8,  // 4: plugin.v1.HandleHTTPRequest.query:type_name -> plugin.v1.HandleHTTPRequest.QueryEntry
-	9,  // 5: plugin.v1.HandleHTTPResponse.headers:type_name -> plugin.v1.HandleHTTPResponse.HeadersEntry
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	1, // 0: plugin.v1.InitRequest.plugin:type_name -> plugin.v1.PluginIdentity
+	5, // 1: plugin.v1.MigrateRequest.config:type_name -> google.protobuf.Struct
+	5, // 2: plugin.v1.MigrateResponse.config:type_name -> google.protobuf.Struct
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_plugin_v1_lifecycle_proto_init() }
@@ -529,7 +365,7 @@ func file_plugin_v1_lifecycle_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_v1_lifecycle_proto_rawDesc), len(file_plugin_v1_lifecycle_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

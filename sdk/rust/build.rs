@@ -10,6 +10,7 @@ fn main() {
         "../../proto/plugin/v1/notify.proto",
         "../../proto/plugin/v1/http.proto",
         "../../proto/plugin/v1/lifecycle.proto",
+        "../../proto/plugin/v1/route.proto",
     ];
 
     for proto_file in proto_files {
