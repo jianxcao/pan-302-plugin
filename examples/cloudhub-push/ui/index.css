@@ -1,0 +1,27 @@
+.cloudhub-push-settings {
+  display: grid;
+  gap: 20px;
+  max-width: 720px;
+}
+
+.cloudhub-push-settings .plugin-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.cloudhub-push-settings .plugin-heading h2 {
+  margin: 4px 0 0;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.cloudhub-push-settings .plugin-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cloudhub-push-settings .plugin-form {
+  max-width: 640px;
+}

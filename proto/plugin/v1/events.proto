@@ -1,0 +1,45 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+import "google/protobuf/timestamp.proto";
+
+message StrmEvent {
+  string event_id = 1;
+  string event = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string operation = 4;
+  string source = 5;
+  string origin_plugin = 6;
+  DriverEventInfo driver = 7;
+  StrmEventInfo strm = 8;
+  string record_status = 9;
+  FileSnapshot file = 10;
+}
+
+message DriverEventInfo {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  string type_group = 4;
+}
+
+message StrmEventInfo {
+  string task_name = 1;
+  string local_path = 2;
+  string cloud_path = 3;
+  string old_local_path = 4;
+  string old_cloud_path = 5;
+  string locator = 6;
+}
+
+message FileSnapshot {
+  string id = 1;
+  string name = 2;
+  string path = 3;
+  int64 size = 4;
+  map<string, string> hashes = 5;
+  google.protobuf.Timestamp modified = 6;
+  string pick_code = 7;
+}

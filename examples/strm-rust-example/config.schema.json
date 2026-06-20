@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "targetDriverId": { "type": "string" },
+    "taskName": { "type": "string" },
+    "cloudPath": { "type": "string" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+message HTTPRequestArgs {
+  string method = 1;
+  string url = 2;
+  map<string, StringList> headers = 3;
+  bytes body = 4;
+  int32 timeout_millis = 5;
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+message HTTPResponseData {
+  int32 status = 1;
+  map<string, StringList> headers = 2;
+  bytes body = 3;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+message LogWriteRequest {
+  string level = 1;
+  string message = 2;
+  map<string, string> fields = 3;
+}
+
+message LogWriteResponse {
+  bool written = 1;
+}

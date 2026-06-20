@@ -1,0 +1,47 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+import "google/protobuf/struct.proto";
+
+message InitRequest {
+  string abi = 1;
+  PluginIdentity plugin = 2;
+}
+
+message PluginIdentity {
+  string name = 1;
+  string version = 2;
+}
+
+message LifecycleResponse {
+  bool ok = 1;
+  string error = 2;
+}
+
+message MigrateRequest {
+  int32 from_version = 1;
+  int32 to_version = 2;
+  google.protobuf.Struct config = 3;  // 插件配置（任意 JSON 结构）
+}
+
+message MigrateResponse {
+  bool ok = 1;
+  string error = 2;
+  google.protobuf.Struct config = 3;  // 迁移后的新配置
+}
+
+message HandleHTTPRequest {
+  string method = 1;
+  string path = 2;
+  map<string, string> headers = 3;
+  bytes body = 4;
+  map<string, string> query = 5;
+}
+
+message HandleHTTPResponse {
+  int32 status = 1;
+  map<string, string> headers = 2;
+  bytes body = 3;
+}

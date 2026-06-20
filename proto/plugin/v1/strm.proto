@@ -1,0 +1,25 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+message StrmWriteRequest {
+  string driver_id = 1;
+  string cloud_path = 2;
+  string task_name = 3;
+  bool force = 4;
+  string idempotency_key = 5;
+}
+
+message StrmDeleteRequest {
+  string driver_id = 1;
+  string cloud_path = 2;
+  string task_name = 3;
+  string idempotency_key = 4;
+}
+
+message StrmOperationResult {
+  string status = 1;
+  string local_path = 2;
+  string cloud_path = 3;
+}

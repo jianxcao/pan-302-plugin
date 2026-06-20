@@ -1,0 +1,63 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+import "plugin/v1/driver.proto";
+import "plugin/v1/strm.proto";
+import "plugin/v1/config.proto";
+import "plugin/v1/log.proto";
+import "plugin/v1/notify.proto";
+import "plugin/v1/http.proto";
+
+message HostRequest {
+  string id = 1;
+
+  oneof request {
+    DriverListRequest driver_list = 10;
+    DriverReadRequest driver_read = 11;
+    DriverLinkRequest driver_link = 12;
+    DriverMkdirRequest driver_mkdir = 13;
+    DriverRenameRequest driver_rename = 14;
+    DriverDeleteRequest driver_delete = 15;
+    DriverMoveCopyRequest driver_move = 16;
+    DriverMoveCopyRequest driver_copy = 17;
+
+    StrmWriteRequest strm_write = 20;
+    StrmDeleteRequest strm_delete = 21;
+
+    ConfigReadRequest config_read = 30;
+    ConfigWriteRequest config_write = 31;
+
+    LogWriteRequest log_write = 40;
+    NotifySendRequest notify_send = 50;
+    HTTPRequestArgs http_request = 60;
+  }
+}
+
+message HostResponse {
+  string id = 1;
+
+  oneof result {
+    DriverListResponse driver_list = 10;
+    DriverReadResponse driver_read = 11;
+    DriverLinkResponse driver_link = 12;
+    DriverObject driver_mkdir = 13;
+    DriverRenameResponse driver_rename = 14;
+    DriverDeleteResponse driver_delete = 15;
+    DriverMoveCopyResponse driver_move_copy = 16;
+    StrmOperationResult strm_result = 20;
+    ConfigReadResponse config_read = 30;
+    ConfigWriteResponse config_write = 31;
+    LogWriteResponse log_write = 40;
+    NotifySendResponse notify_send = 50;
+    HTTPResponseData http_response = 60;
+
+    HostError error = 100;
+  }
+}
+
+message HostError {
+  string code = 1;
+  string message = 2;
+}

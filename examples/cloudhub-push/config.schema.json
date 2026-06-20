@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "api_key": {
+      "type": "string",
+      "title": "节点 API Key"
+    },
+    "base_url": {
+      "type": "string",
+      "format": "uri",
+      "title": "CloudHub API URL"
+    },
+    "node_id": {
+      "type": "string",
+      "title": "节点 ID"
+    },
+    "public_base_url": {
+      "type": "string",
+      "format": "uri",
+      "title": "节点公开 URL"
+    },
+    "batch_size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500,
+      "default": 500
+    }
+  },
+  "required": ["api_key", "base_url", "node_id"],
+  "additionalProperties": false
+}

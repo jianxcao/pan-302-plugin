@@ -1,0 +1,26 @@
+# Compiled Wasm binaries and plugin packages
+*.wasm
+*.panplugin
+dist/
+
+# Rust build artifacts
+target/
+**/*.rs.bk
+
+# Go build artifacts and test logs
+*.test
+*.out
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

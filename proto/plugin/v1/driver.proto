@@ -1,0 +1,99 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+import "google/protobuf/timestamp.proto";
+
+message DriverListRequest {}
+
+message DriverListResponse {
+  repeated DriverInfo drivers = 1;
+}
+
+message DriverInfo {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  string type_group = 4;
+  string health = 5;
+  repeated string capabilities = 6;
+}
+
+message DriverReadRequest {
+  string driver_id = 1;
+  string action = 2;     // "list" | "file_info"
+  ObjectRef object = 3;
+  int32 limit = 4;
+}
+
+message ObjectRef {
+  string id = 1;
+  string path = 2;
+}
+
+message DriverReadResponse {
+  repeated DriverObject objects = 1;    // action=list
+  DriverObject object = 2;             // action=file_info
+}
+
+message DriverObject {
+  string id = 1;
+  string parent_id = 2;
+  string name = 3;
+  string path = 4;
+  bool is_folder = 5;
+  int64 size = 6;
+  google.protobuf.Timestamp modified = 7;
+  google.protobuf.Timestamp create_time = 8;
+  string pick_code = 9;
+  map<string, string> hashes = 10;
+}
+
+message DriverLinkRequest {
+  string driver_id = 1;
+  string id = 2;
+  string path = 3;
+}
+
+message DriverLinkResponse {
+  string url = 1;
+}
+
+message DriverMkdirRequest {
+  string driver_id = 1;
+  string parent_id = 2;
+  string path = 3;
+  string name = 4;
+}
+
+message DriverRenameRequest {
+  string driver_id = 1;
+  string id = 2;
+  string path = 3;
+  string new_name = 4;
+}
+
+message DriverRenameResponse {
+  string path = 1;
+}
+
+message DriverDeleteRequest {
+  string driver_id = 1;
+  repeated ObjectRef objects = 2;
+}
+
+message DriverDeleteResponse {
+  int32 deleted = 1;
+}
+
+message DriverMoveCopyRequest {
+  string driver_id = 1;
+  repeated ObjectRef source = 2;
+  ObjectRef destination = 3;
+}
+
+message DriverMoveCopyResponse {
+  bool completed = 1;
+  DriverObject result = 2;
+}

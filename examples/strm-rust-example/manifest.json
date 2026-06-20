@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "name": "strm-example",
+  "version": "1.0.0",
+  "displayName": "STRM 示例插件",
+  "description": "用于验证 Driver 枚举以及 STRM 创建和删除能力",
+  "author": "pan-302",
+  "abi": "pan302-plugin-abi/v2",
+  "wasm": "plugin.wasm",
+  "configVersion": 1,
+  "events": [
+    "strm.created",
+    "strm.overwritten",
+    "strm.deleted",
+    "strm.renamed",
+    "strm.moved",
+    "strm.copied"
+  ],
+  "permissions": [
+    "log.write",
+    "config.read",
+    "config.write",
+    "driver.list",
+    "strm.write",
+    "strm.delete",
+    "route.handle",
+    "event.strm.read"
+  ],
+  "ui": {
+    "manifest": "ui/manifest.json",
+    "mode": "trusted-esm"
+  }
+}

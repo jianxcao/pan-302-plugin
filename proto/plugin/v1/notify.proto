@@ -1,0 +1,15 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+message NotifySendRequest {
+  string title = 1;
+  string text = 2;
+  string link = 3;
+  string image = 4;
+}
+
+message NotifySendResponse {
+  bool sent = 1;
+}

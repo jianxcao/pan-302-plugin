@@ -1,0 +1,11 @@
+name: Proto Compatibility Check
+on: [pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+      - uses: bufbuild/buf-breaking-action@v1
+        with:
+          against: 'https://github.com/jianxcao/pan-302-plugin.git#branch=main'
