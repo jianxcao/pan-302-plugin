@@ -1,56 +1,22 @@
 package pan302plugin
 
 import (
-	"fmt"
-	"sync"
-	"sync/atomic"
-	"unsafe"
-
 	pb "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1"
-	"google.golang.org/protobuf/proto"
 )
 
-var (
-	requestCounter atomic.Uint64
-	allocationMu   sync.Mutex
-	allocations    = map[uint32][]byte{}
+// 插件所支持的网盘能力位预设常量
+const (
+	CapList        = "list"
+	CapLink        = "link"
+	CapMkdir       = "mkdir"
+	CapDelete      = "delete"
+	CapRename      = "rename"
+	CapMove        = "move"
+	CapCopy        = "copy"
+	CapPut         = "put"
+	CapRapidUpload = "rapid_upload"
+	CapStrm        = "strm"
 )
-
-func nextID() string {
-	return fmt.Sprintf("go-%d", requestCounter.Add(1))
-}
-
-func call(request *pb.HostRequest) (*pb.HostResponse, error) {
-	encoded, err := proto.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
-	responseBuffer := make([]byte, 4096)
-	for {
-		result := hostCall(
-			bytesPointer(encoded),
-			uint32(len(encoded)),
-			bytesPointer(responseBuffer),
-			uint32(len(responseBuffer)),
-		)
-		if result < 0 {
-			return nil, fmt.Errorf("host_call failed with code %d", result)
-		}
-		required := int(result)
-		if required > len(responseBuffer) {
-			responseBuffer = make([]byte, required)
-			continue
-		}
-		var response pb.HostResponse
-		if err := proto.Unmarshal(responseBuffer[:required], &response); err != nil {
-			return nil, err
-		}
-		if errResult, ok := response.Result.(*pb.HostResponse_Error); ok {
-			return nil, fmt.Errorf("%s: %s", errResult.Error.Code, errResult.Error.Message)
-		}
-		return &response, nil
-	}
-}
 
 func DriverList() (*pb.DriverListResponse, error) {
 	resp, err := call(&pb.HostRequest{
@@ -208,54 +174,11 @@ func RequestHTTP(request *pb.HTTPRequestArgs) (*pb.HTTPResponseData, error) {
 	return resp.GetHttpResponse(), nil
 }
 
-func Allocate(size uint32) uint32 {
-	if size == 0 {
-		return 0
+func HasCapability(driver *pb.DriverInfo, cap string) bool {
+	for _, c := range driver.Capabilities {
+		if c == cap {
+			return true
+		}
 	}
-	buffer := make([]byte, size)
-	ptr := bytesPointer(buffer)
-	allocationMu.Lock()
-	allocations[ptr] = buffer
-	allocationMu.Unlock()
-	return ptr
-}
-
-func Free(ptr uint32) {
-	if ptr == 0 {
-		return
-	}
-	allocationMu.Lock()
-	delete(allocations, ptr)
-	allocationMu.Unlock()
-}
-
-func EncodeResponse(value proto.Message) uint64 {
-	encoded, err := proto.Marshal(value)
-	if err != nil || len(encoded) == 0 {
-		return 0
-	}
-	ptr := Allocate(uint32(len(encoded)))
-	copy(pointerBytes(ptr, uint32(len(encoded))), encoded)
-	return uint64(ptr)<<32 | uint64(uint32(len(encoded)))
-}
-
-func DecodeRequest(ptr, length uint32, target proto.Message) error {
-	if ptr == 0 || length == 0 {
-		return fmt.Errorf("empty request")
-	}
-	return proto.Unmarshal(pointerBytes(ptr, length), target)
-}
-
-func bytesPointer(data []byte) uint32 {
-	if len(data) == 0 {
-		return 0
-	}
-	return uint32(uintptr(unsafe.Pointer(&data[0])))
-}
-
-func pointerBytes(ptr, length uint32) []byte {
-	if ptr == 0 || length == 0 {
-		return nil
-	}
-	return unsafe.Slice((*byte)(unsafe.Pointer(uintptr(ptr))), int(length))
+	return false
 }
