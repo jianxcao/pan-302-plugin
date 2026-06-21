@@ -22,7 +22,10 @@ func TestResourceFromEvent(t *testing.T) {
 			PickCode: "pick",
 		},
 	}
-	resource := resourceFromEvent(&event)
+	cfg := PluginConfig{
+		NodeID: "test-node",
+	}
+	resource := resourceFromEvent(&event, cfg)
 	assertEqual(t, "abc", resource.SHA1)
 	assertEqual(t, "Show.S02E08.2025.2160p.HDR.WEB-DL", resource.Title)
 	assertEqual(t, "tv", resource.Type)
@@ -30,6 +33,8 @@ func TestResourceFromEvent(t *testing.T) {
 	assertEqual(t, 8, resource.Episode)
 	assertEqual(t, "2025", resource.Year)
 	assertEqual(t, "2160p HDR WEB-DL", resource.Quality)
+	assertEqual(t, "test-node", resource.OwnerName)
+	assertEqual(t, "cloud_resource.v1", resource.Schema)
 }
 
 func TestNormalizeCloudHubPath(t *testing.T) {

@@ -43,7 +43,7 @@ func pan302Init(ptr, length uint32) uint64 {
 	if err := pan302plugin.DecodeRequest(ptr, length, &request); err != nil {
 		return errorResponse(err)
 	}
-	pan302plugin.Log("info", "CloudHub 推送插件已启动", nil)
+	pan302plugin.Logger.Info("CloudHub 推送插件已启动", nil)
 	return successResponse()
 }
 
@@ -54,7 +54,7 @@ func pan302OnEvent(ptr, length uint32) uint64 {
 		return errorResponse(err)
 	}
 	if err := handleEvent(&event); err != nil {
-		pan302plugin.Log("error", "CloudHub 事件处理失败", map[string]string{
+		pan302plugin.Logger.Error("CloudHub 事件处理失败", map[string]string{
 			"eventId": event.EventId,
 			"error":   err.Error(),
 		})
@@ -69,7 +69,7 @@ func handleEvent(event *pb.StrmEvent) error {
 	default:
 		return nil
 	}
-	configResp, err := pan302plugin.ConfigRead()
+	configResp, err := pan302plugin.Config.Read()
 	if err != nil {
 		return fmt.Errorf("读取插件配置: %w", err)
 	}
@@ -89,7 +89,8 @@ func handleEvent(event *pb.StrmEvent) error {
 	config.NodeID = strings.TrimSpace(config.NodeID)
 	config.APIKey = strings.TrimSpace(config.APIKey)
 	if config.BaseURL == "" || config.NodeID == "" || config.APIKey == "" {
-		return fmt.Errorf("请先配置 CloudHub API URL、Node ID 和 API Key")
+		pan302plugin.Logger.Warn("请先配置 CloudHub API URL、Node ID 和 API Key", nil)
+		return nil
 	}
 	if event.File == nil {
 		return fmt.Errorf("事件 %s 不包含文件数据库快照", event.EventId)
@@ -99,22 +100,22 @@ func handleEvent(event *pb.StrmEvent) error {
 	if event.Event == "strm.deleted" {
 		sha1 := event.File.Hashes["sha1"]
 		if sha1 == "" {
-			pan302plugin.Log("warn", "删除事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
+			pan302plugin.Logger.Warn("删除事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
 			return nil
 		}
 		result, err := client.DeleteOwners([]string{sha1})
 		if err != nil {
 			return err
 		}
-		pan302plugin.Log("info", "CloudHub 删除推送成功", map[string]string{
+		pan302plugin.Logger.Info("CloudHub 删除推送成功", map[string]string{
 			"eventId":      event.EventId,
 			"deletedOwner": strconv.FormatInt(result.DeletedOwners, 10),
 		})
 		return nil
 	}
-	resource := resourceFromEvent(event)
+	resource := resourceFromEvent(event, config)
 	if resource.SHA1 == "" {
-		pan302plugin.Log("warn", "创建事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
+		pan302plugin.Logger.Warn("创建事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
 		return nil
 	}
 	batchSize := config.BatchSize
@@ -125,7 +126,7 @@ func handleEvent(event *pb.StrmEvent) error {
 	if err != nil {
 		return err
 	}
-	pan302plugin.Log("info", "CloudHub 资源推送成功", map[string]string{
+	pan302plugin.Logger.Info("CloudHub 资源推送成功", map[string]string{
 		"eventId":  event.EventId,
 		"inserted": strconv.FormatInt(result.Inserted, 10),
 		"updated":  strconv.FormatInt(result.Updated, 10),
@@ -133,7 +134,7 @@ func handleEvent(event *pb.StrmEvent) error {
 	return nil
 }
 
-func resourceFromEvent(event *pb.StrmEvent) Resource {
+func resourceFromEvent(event *pb.StrmEvent, cfg PluginConfig) Resource {
 	file := event.File
 	cloudPath := ""
 	if event.Strm != nil {
@@ -154,19 +155,21 @@ func resourceFromEvent(event *pb.StrmEvent) Resource {
 	sha1 := file.Hashes["sha1"]
 	preSha1 := file.Hashes["presha1"]
 	return Resource{
-		SHA1:     sha1,
-		PreSHA1:  preSha1,
-		Size:     strconv.FormatInt(file.Size, 10),
-		Name:     file.Name,
-		RawName:  file.Name,
-		Path:     cloudPath,
-		PickCode: file.PickCode,
-		Title:    title,
-		Type:     mediaType,
-		Season:   season,
-		Episode:  episode,
-		Quality:  parseQuality(file.Name),
-		Year:     parseYear(cloudPath, file.Name),
+		SHA1:      sha1,
+		PreSHA1:   preSha1,
+		Size:      strconv.FormatInt(file.Size, 10),
+		Name:      file.Name,
+		RawName:   file.Name,
+		Path:      cloudPath,
+		PickCode:  file.PickCode,
+		Title:     title,
+		Type:      mediaType,
+		Season:    season,
+		Episode:   episode,
+		Quality:   parseQuality(file.Name),
+		Year:      parseYear(cloudPath, file.Name),
+		Schema:    "cloud_resource.v1",
+		OwnerName: cfg.NodeID,
 	}
 }
 

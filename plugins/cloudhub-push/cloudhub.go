@@ -36,6 +36,9 @@ type Resource struct {
 	Year         string `json:"year,omitempty"`
 	Category     string `json:"category,omitempty"`
 	Actors       string `json:"actors,omitempty"`
+	//  "schema": "cloud_resource.v1",
+	Schema    string `json:"Schema,omitempty"`
+	OwnerName string `json:"ownerName,omitempty"`
 }
 
 type PushResponse struct {
@@ -155,7 +158,7 @@ func (c *Client) postJSON(path string, body any, target any) error {
 	if c.PublicBaseURL != "" {
 		headers["node-public-url"] = &pb.StringList{Values: []string{strings.TrimRight(c.PublicBaseURL, "/")}}
 	}
-	response, err := pan302plugin.RequestHTTP(&pb.HTTPRequestArgs{
+	response, err := pan302plugin.HTTP.Request(&pb.HTTPRequestArgs{
 		Method:        "POST",
 		Url:           c.BaseURL + path,
 		Headers:       headers,

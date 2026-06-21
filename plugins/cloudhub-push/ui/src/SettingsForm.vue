@@ -73,6 +73,7 @@ const props = defineProps<{
   configApi: string
   apiBase: string
   pluginName: string
+  onClose?: () => void
 }>()
 
 const config = ref({
@@ -137,6 +138,11 @@ async function saveConfig() {
     })
     status.value = '设置已保存'
     statusType.value = 'success'
+    if (props.onClose) {
+      setTimeout(() => {
+        props.onClose?.()
+      }, 1000)
+    }
   } catch (error: any) {
     status.value = error.message || String(error)
     statusType.value = 'error'
