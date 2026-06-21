@@ -25,8 +25,20 @@
       "minimum": 1,
       "maximum": 500,
       "default": 500
+    },
+    "include_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "包含路径",
+      "description": "只有包含在这个数组内的路径才会通知 CloudHub，留空则通知所有路径"
     }
   },
-  "required": ["api_key", "base_url", "node_id"],
+  "required": [
+    "api_key",
+    "base_url",
+    "node_id"
+  ],
   "additionalProperties": false
 }

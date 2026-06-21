@@ -46,6 +46,10 @@
           <NInputNumber v-model:value="config.batch_size" :min="1" :max="500" />
         </NFormItem>
 
+        <NFormItem label="包含路径" path="include_paths" feedback="只有包含在这些路径内的文件或 STRM 才会推送到 CloudHub，留空代表全部推送。">
+          <NDynamicInput v-model:value="config.include_paths" placeholder="例如 /电影" />
+        </NFormItem>
+
         <NSpace justify="end">
           <NButton type="primary" :loading="loading" @click="saveConfig">保存设置</NButton>
         </NSpace>
@@ -66,6 +70,7 @@ import {
   NInputNumber,
   NSpace,
   NButton,
+  NDynamicInput,
 } from 'naive-ui'
 
 const props = defineProps<{
@@ -82,6 +87,7 @@ const config = ref({
   api_key: '',
   public_base_url: '',
   batch_size: 500,
+  include_paths: [] as string[],
 })
 
 const loading = ref(false)

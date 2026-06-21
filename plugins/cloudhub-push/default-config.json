@@ -3,5 +3,6 @@
   "base_url": "",
   "node_id": "",
   "public_base_url": "",
-  "batch_size": 500
+  "batch_size": 500,
+  "include_paths": []
 }

@@ -47,3 +47,31 @@ func assertEqual[T comparable](t *testing.T, expected, actual T) {
 		t.Fatalf("expected %v, got %v", expected, actual)
 	}
 }
+
+func TestMatchPath(t *testing.T) {
+	tests := []struct {
+		path     string
+		prefix   string
+		expected bool
+	}{
+		{"/Movies/Inception.strm", "/Movies", true},
+		{"/Movies/Inception.strm", "/Movies/", true},
+		{"/Movies", "/Movies", true},
+		{"/Movies", "/Movies/", true},
+		{"/Movies-Backup/Inception.strm", "/Movies", false},
+		{"/TV/Show.mkv", "/Movies", false},
+		{"/Movies/SciFi/Interstellar.strm", "/Movies/SciFi", true},
+		{"/Movies/SciFi/Interstellar.strm", "/Movies/SciFi/", true},
+		{"/Movies/Inception.strm", "Movies", true},
+		{"Movies/Inception.strm", "/Movies", true},
+		{"Movies", "Movies", true},
+		{"/Movies", "Movies", true},
+	}
+
+	for _, tt := range tests {
+		actual := matchPath(tt.path, tt.prefix)
+		if actual != tt.expected {
+			t.Errorf("matchPath(%q, %q) = %v; expected %v", tt.path, tt.prefix, actual, tt.expected)
+		}
+	}
+}

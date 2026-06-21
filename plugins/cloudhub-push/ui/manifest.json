@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "name": "cloudhub-push-settings",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "protocol": "pan302-plugin-ui/v1",
   "mode": "trusted-esm",
-  "entry": "out/index-BZatxcxl.js",
-  "style": "out/style-Dv-rEwxU.css",
+  "entry": "out/index-Sd6nbmvN.js",
+  "style": "out/style-dROAia-G.css",
   "exportName": "default"
 }

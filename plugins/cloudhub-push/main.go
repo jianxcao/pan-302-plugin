@@ -13,11 +13,12 @@ import (
 )
 
 type PluginConfig struct {
-	APIKey        string `json:"api_key"`
-	BaseURL       string `json:"base_url"`
-	NodeID        string `json:"node_id"`
-	PublicBaseURL string `json:"public_base_url,omitempty"`
-	BatchSize     int    `json:"batch_size,omitempty"`
+	APIKey        string   `json:"api_key"`
+	BaseURL       string   `json:"base_url"`
+	NodeID        string   `json:"node_id"`
+	PublicBaseURL string   `json:"public_base_url,omitempty"`
+	BatchSize     int      `json:"batch_size,omitempty"`
+	IncludePaths  []string `json:"include_paths,omitempty"`
 }
 
 var (
@@ -95,6 +96,32 @@ func handleEvent(event *pb.StrmEvent) error {
 	if event.File == nil {
 		return fmt.Errorf("事件 %s 不包含文件数据库快照", event.EventId)
 	}
+
+	cloudPath := ""
+	if event.Strm != nil {
+		cloudPath = event.Strm.CloudPath
+	}
+	if cloudPath == "" {
+		cloudPath = event.File.Path
+	}
+
+	if len(config.IncludePaths) > 0 {
+		matched := false
+		for _, prefix := range config.IncludePaths {
+			if matchPath(cloudPath, prefix) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			pan302plugin.Logger.Info("路径未在包含列表中，跳过通知", map[string]string{
+				"path":    cloudPath,
+				"eventId": event.EventId,
+			})
+			return nil
+		}
+	}
+
 	client := NewClient(config.BaseURL, config.NodeID, config.APIKey)
 	client.PublicBaseURL = config.PublicBaseURL
 	if event.Event == "strm.deleted" {
@@ -231,6 +258,17 @@ func containsAny(value string, candidates ...string) bool {
 		}
 	}
 	return false
+}
+
+func matchPath(path string, prefix string) bool {
+	p := "/" + strings.Trim(path, "/")
+	pf := "/" + strings.Trim(prefix, "/")
+	p = strings.TrimSuffix(p, "/")
+	pf = strings.TrimSuffix(pf, "/")
+	if p == pf {
+		return true
+	}
+	return strings.HasPrefix(p, pf+"/")
 }
 
 func successResponse() uint64 {
