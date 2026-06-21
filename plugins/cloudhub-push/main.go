@@ -151,7 +151,29 @@ func handleEvent(event *pb.StrmEvent) error {
 	}
 	result, err := client.PushInBatches([]Resource{resource}, batchSize)
 	if err != nil {
-		return err
+		errStr := strings.ToLower(err.Error())
+		isConflict := strings.Contains(errStr, "unique constraint") || strings.Contains(errStr, "unique")
+		if isConflict && resource.SHA1 != "" {
+			pan302plugin.Logger.Warn("推送遇到唯一性冲突，尝试先删除已有归属再重新推送", map[string]string{
+				"eventId": event.EventId,
+				"sha1":    resource.SHA1,
+				"error":   err.Error(),
+			})
+			if _, delErr := client.DeleteOwners([]string{resource.SHA1}); delErr != nil {
+				pan302plugin.Logger.Warn("重试删除归属失败", map[string]string{
+					"eventId": event.EventId,
+					"sha1":    resource.SHA1,
+					"error":   delErr.Error(),
+				})
+			}
+			result, err = client.PushInBatches([]Resource{resource}, batchSize)
+		}
+		if err != nil {
+			pan302plugin.Logger.Error("调用 cloudhub 失败", map[string]string{
+				"error": err.Error(),
+			})
+			return nil
+		}
 	}
 	pan302plugin.Logger.Info("CloudHub 资源推送成功", map[string]string{
 		"eventId":  event.EventId,
