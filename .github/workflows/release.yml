@@ -1,0 +1,130 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - '**/v*' # 支持的 Tag 格式：插件名/v版本号 (例如 cloudhub-push/v1.0.0)
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse Tag
+        id: parse_tag
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Tag Name: $TAG_NAME"
+          # 从 Tag 中解析出插件名称和三段式版本号。例如: cloudhub-push/v1.0.0 -> plugin_name=cloudhub-push, version=1.0.0
+          if [[ "$TAG_NAME" =~ ^([^/]+)/v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?)$ ]]; then
+            PLUGIN_NAME="${BASH_REMATCH[1]}"
+            VERSION="${BASH_REMATCH[2]}"
+            echo "plugin_name=$PLUGIN_NAME" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "plugin_dir=plugins/$PLUGIN_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Tag name '$TAG_NAME' does not match the 'plugin-name/v1.0.0' format."
+            exit 1
+          fi
+
+      - name: Validate Plugin Existence
+        run: |
+          PLUGIN_DIR="${{ steps.parse_tag.outputs.plugin_dir }}"
+          if [ ! -d "$PLUGIN_DIR" ]; then
+            echo "Error: Directory '$PLUGIN_DIR' does not exist."
+            exit 1
+          fi
+          # 确保不是 examples 中的 demo 插件
+          if [[ "$PLUGIN_DIR" == *"examples"* ]]; then
+            echo "Error: Example plugins are not allowed for release."
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: '${{ steps.parse_tag.outputs.plugin_dir }}/ui/pnpm-lock.yaml'
+
+      - name: Build CLI Tool
+        run: |
+          make cli
+
+      - name: Build Plugin
+        run: |
+          PLUGIN_DIR="${{ steps.parse_tag.outputs.plugin_dir }}"
+          VERSION="${{ steps.parse_tag.outputs.version }}"
+          CLI_PATH=$(pwd)/bin/pan302-plugin
+
+          # 执行编译打包命令，将命令行传递的 VERSION 覆盖 Makefile 中的硬编码版本
+          make -C $PLUGIN_DIR PAN302_PLUGIN_CLI=$CLI_PATH VERSION=$VERSION build
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          PLUGIN_DIR="${{ steps.parse_tag.outputs.plugin_dir }}"
+          PLUGIN_NAME="${{ steps.parse_tag.outputs.plugin_name }}"
+          VERSION="${{ steps.parse_tag.outputs.version }}"
+          CHANGELOG_PATH="$PLUGIN_DIR/CHANGELOG.md"
+          BODY_FILE="release_notes.txt"
+
+          # 1. 尝试从 CHANGELOG.md 提取当前版本的变更日志段落
+          if [ -f "$CHANGELOG_PATH" ]; then
+            awk -v ver="$VERSION" '
+              BEGIN { found = 0 }
+              $0 ~ "^##[[:space:]]+\\[?" ver "(\\]|([[:space:]]|$))" {
+                found = 1;
+                print $0;
+                next;
+              }
+              found && /^##[[:space:]]+/ {
+                found = 0;
+                exit;
+              }
+              found { print }
+            ' "$CHANGELOG_PATH" > "$BODY_FILE"
+          fi
+
+          # 2. 如果日志为空或未提取成功，则回退为 manifest.json 中的基础配置描述
+          if [ ! -s "$BODY_FILE" ]; then
+            echo "## $PLUGIN_NAME v$VERSION" > "$BODY_FILE"
+            echo "" >> "$BODY_FILE"
+            if [ -f "$PLUGIN_DIR/manifest.json" ]; then
+              DISPLAY_NAME=$(jq -r '.displayName // ""' "$PLUGIN_DIR/manifest.json")
+              DESC=$(jq -r '.description // ""' "$PLUGIN_DIR/manifest.json")
+              echo "**$DISPLAY_NAME**" >> "$BODY_FILE"
+              echo "" >> "$BODY_FILE"
+              echo "$DESC" >> "$BODY_FILE"
+            else
+              echo "Automated release of $PLUGIN_NAME v$VERSION." >> "$BODY_FILE"
+            fi
+          fi
+
+          echo "notes_file=$BODY_FILE" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: '${{ steps.parse_tag.outputs.plugin_name }} v${{ steps.parse_tag.outputs.version }}'
+          body_path: ${{ steps.release_notes.outputs.notes_file }}
+          files: |
+            ${{ steps.parse_tag.outputs.plugin_dir }}/dist/*.panplugin
+          draft: false
+          prerelease: false
