@@ -26,6 +26,11 @@ func (loggerAPI) Write(level, message string, fields any) {
 	})
 }
 
+// Debug 写入一条 Debug 等级日志
+func (l loggerAPI) Debug(message string, fields any) {
+	l.Write("debug", message, fields)
+}
+
 // Info 写入一条 Info 等级日志
 func (l loggerAPI) Info(message string, fields any) {
 	l.Write("info", message, fields)

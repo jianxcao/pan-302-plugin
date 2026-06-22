@@ -12,6 +12,10 @@ pub fn write(level: &str, message: &str, fields: std::collections::HashMap<Strin
     });
 }
 
+pub fn debug(message: &str) {
+    write("debug", message, std::collections::HashMap::new());
+}
+
 pub fn info(message: &str) {
     write("info", message, std::collections::HashMap::new());
 }

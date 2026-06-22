@@ -37,8 +37,40 @@ func TestResourceFromEvent(t *testing.T) {
 	assertEqual(t, "cloud_resource.v1", resource.Schema)
 }
 
+func TestResourceFromEventDoesNotUseOldCloudPathForQuality(t *testing.T) {
+	event := pb.StrmEvent{
+		EventId: "event-1",
+		Event:   "strm.renamed",
+		Strm: &pb.StrmEventInfo{
+			CloudPath:    "/TV/炽夏 (2026)/Season 1/炽夏 - S01E01 - 第 1 集.mp4",
+			OldCloudPath: "/TV/炽夏 (2026)/Season 1/Never.Ending.Summer.2026.S01E01.2160p.WEB-DL.AAC.H.265.mp4",
+		},
+		File: &pb.FileSnapshot{
+			Hashes: map[string]string{"sha1": "abc"},
+			Size:   1024,
+			Name:   "炽夏 - S01E01 - 第 1 集.mp4",
+			Path:   "/TV/炽夏 (2026)/Season 1/炽夏 - S01E01 - 第 1 集.mp4",
+		},
+	}
+	resource := resourceFromEvent(&event, PluginConfig{NodeID: "test-node"})
+	assertEqual(t, "", resource.Quality)
+	applyCloudHubRecognizableName(&resource)
+	assertEqual(t, "炽夏 S01E01.mp4", resource.Name)
+}
+
 func TestNormalizeCloudHubPath(t *testing.T) {
 	assertEqual(t, "TV/Movie.mkv", normalizeCloudHubPath(`//TV\\Movie.mkv`))
+}
+
+func TestHandleEventSkipsMissingFileSnapshot(t *testing.T) {
+	event := pb.StrmEvent{
+		EventId: "event-1",
+		Event:   "strm.created",
+	}
+
+	if err := handleEvent(&event); err != nil {
+		t.Fatalf("expected missing file snapshot to be skipped, got %v", err)
+	}
 }
 
 func TestApplyMediaInfo(t *testing.T) {
@@ -113,7 +145,8 @@ func TestApplyCloudHubRecognizableNameMovie(t *testing.T) {
 		AudioCodec:      "eac3",
 	}
 	applyCloudHubRecognizableName(&resource)
-	assertEqual(t, "Inception (2010)/Inception (2010) - 2160p 23.976fps HDR HEVC EAC3.mkv", resource.Name)
+	assertEqual(t, "Inception (2010) - 2160p 23.976fps HDR HEVC EAC3.mkv", resource.Name)
+	assertEqual(t, "Inception", resource.Title)
 }
 
 func TestApplyCloudHubRecognizableNameTV(t *testing.T) {
@@ -131,7 +164,24 @@ func TestApplyCloudHubRecognizableNameTV(t *testing.T) {
 		AudioCodec:      "eac3",
 	}
 	applyCloudHubRecognizableName(&resource)
-	assertEqual(t, "问心 (2023)/Season 1/问心 S01E04 - 2160p 25fps HDR HEVC.mkv", resource.Name)
+	assertEqual(t, "问心 S01E04 - 2160p 25fps HDR HEVC.mkv", resource.Name)
+	assertEqual(t, "问心", resource.Title)
+}
+
+func TestApplyCloudHubRecognizableNameTVUsesChinesePathTitle(t *testing.T) {
+	resource := Resource{
+		Name:    "Never.Ending.Summer.2026.S01E01.2160p.WEB-DL.AAC.H.265-Hiiveweb.mp4",
+		Path:    "/test/media/tv/china/炽夏 (2026)/Season 1/炽夏 - S01E01 - 第 1 集.mp4",
+		Title:   "Never.Ending.Summer.2026.S01E01.2160p.WEB-DL.AAC.H.265-Hiiveweb",
+		Type:    "tv",
+		Season:  1,
+		Episode: 1,
+		Quality: "2160p WEB-DL",
+		Year:    "2026",
+	}
+	applyCloudHubRecognizableName(&resource)
+	assertEqual(t, "炽夏", resource.Title)
+	assertEqual(t, "炽夏 S01E01 - 2160p.mp4", resource.Name)
 }
 
 func assertEqual[T comparable](t *testing.T, expected, actual T) {

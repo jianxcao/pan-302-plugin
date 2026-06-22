@@ -61,6 +61,13 @@ func enrichResourceWithMedia(event *pb.StrmEvent, resource *Resource) {
 		})
 		return
 	}
+	if resp == nil || len(resp.Items) == 0 {
+		pan302plugin.Logger.Info("媒体服务器未返回媒体流信息，继续推送基础资源", map[string]string{
+			"eventId": event.EventId,
+			"path":    localPath,
+		})
+		return
+	}
 	applyMediaInfo(resource, resp)
 }
 
@@ -70,6 +77,7 @@ func readMediaItemsByPath(localPath string) (*mediaItemsResponse, error) {
 		return nil, err
 	}
 	if cfg == nil || strings.TrimSpace(cfg.Url) == "" {
+		pan302plugin.Logger.Info("未配置媒体服务器，跳过媒体流补充", nil)
 		return nil, nil
 	}
 	base := strings.TrimRight(strings.TrimSpace(cfg.Url), "/")

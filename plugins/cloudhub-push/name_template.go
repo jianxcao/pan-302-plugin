@@ -27,7 +27,8 @@ func applyCloudHubRecognizableName(resource *Resource) {
 		return
 	}
 	data := cloudHubNameData(resource)
-	if strings.TrimSpace(data["title"].(string)) == "" || strings.TrimSpace(data["fileExt"].(string)) == "" {
+	title := strings.TrimSpace(data["title"].(string))
+	if title == "" || strings.TrimSpace(data["fileExt"].(string)) == "" {
 		return
 	}
 	tpl := movieNameTemplate
@@ -38,7 +39,8 @@ func applyCloudHubRecognizableName(resource *Resource) {
 	if err := tpl.Execute(&out, data); err != nil {
 		return
 	}
-	resource.Name = strings.TrimSpace(out.String())
+	resource.Title = title
+	resource.Name = lastPathSegment(out.String())
 }
 
 func cloudHubNameData(resource *Resource) map[string]any {
@@ -111,6 +113,14 @@ func splitPathSegments(value string) []string {
 		}
 	}
 	return out
+}
+
+func lastPathSegment(value string) string {
+	segments := splitPathSegments(value)
+	if len(segments) == 0 {
+		return strings.TrimSpace(value)
+	}
+	return segments[len(segments)-1]
 }
 
 func parseSeasonDir(value string) int {

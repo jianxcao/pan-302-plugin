@@ -70,6 +70,16 @@ func handleEvent(event *pb.StrmEvent) error {
 	default:
 		return nil
 	}
+	if event.File == nil {
+		sdk.Logger.Warn("事件不包含文件数据库快照，已跳过", map[string]string{
+			"eventId":      event.EventId,
+			"event":        event.Event,
+			"operation":    event.Operation,
+			"recordStatus": event.RecordStatus,
+		})
+		return nil
+	}
+	sdk.Logger.Info("收到事件：File", event.File)
 	configResp, err := sdk.Config.Read()
 	if err != nil {
 		return fmt.Errorf("读取插件配置: %w", err)
@@ -92,9 +102,6 @@ func handleEvent(event *pb.StrmEvent) error {
 	if config.BaseURL == "" || config.NodeID == "" || config.APIKey == "" {
 		sdk.Logger.Warn("请先配置 CloudHub API URL、Node ID 和 API Key", nil)
 		return nil
-	}
-	if event.File == nil {
-		return fmt.Errorf("事件 %s 不包含文件数据库快照", event.EventId)
 	}
 
 	cloudPath := ""
@@ -127,7 +134,12 @@ func handleEvent(event *pb.StrmEvent) error {
 	if event.Event == "strm.deleted" {
 		sha1 := event.File.Hashes["sha1"]
 		if sha1 == "" {
-			sdk.Logger.Warn("删除事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
+			sdk.Logger.Warn("删除事件缺少 SHA1，已跳过", map[string]string{
+				"eventId":      event.EventId,
+				"fileId":       event.File.Id,
+				"path":         cloudPath,
+				"recordStatus": event.RecordStatus,
+			})
 			return nil
 		}
 		result, err := client.DeleteOwners([]string{sha1})
@@ -145,7 +157,7 @@ func handleEvent(event *pb.StrmEvent) error {
 		sdk.Logger.Warn("创建事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
 		return nil
 	}
-	enrichResourceWithMedia(event, &resource)
+	// enrichResourceWithMedia(event, &resource)
 	applyCloudHubRecognizableName(&resource)
 	sdk.Logger.Info("发送 cloudhub 名称", resource)
 	batchSize := config.BatchSize
@@ -235,8 +247,8 @@ func parseSeasonEpisode(name string) (int, int) {
 	return season, episode
 }
 
-func parseYear(path, name string) string {
-	for _, value := range []string{name, path} {
+func parseYear(values ...string) string {
+	for _, value := range values {
 		matches := yearPattern.FindStringSubmatch(value)
 		if len(matches) == 2 {
 			return matches[1]
