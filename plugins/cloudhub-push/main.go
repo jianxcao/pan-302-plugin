@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	pb "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1"
-	pan302plugin "github.com/jianxcao/pan-302-plugin/sdk/go"
+	sdk "github.com/jianxcao/pan-302-plugin/sdk/go"
 )
 
 type PluginConfig struct {
@@ -30,32 +30,32 @@ func main() {}
 
 //go:wasmexport pan302_alloc
 func pan302Alloc(size uint32) uint32 {
-	return pan302plugin.Allocate(size)
+	return sdk.Allocate(size)
 }
 
 //go:wasmexport pan302_free
 func pan302Free(ptr, _ uint32) {
-	pan302plugin.Free(ptr)
+	sdk.Free(ptr)
 }
 
 //go:wasmexport pan302_init
 func pan302Init(ptr, length uint32) uint64 {
 	var request pb.InitRequest
-	if err := pan302plugin.DecodeRequest(ptr, length, &request); err != nil {
+	if err := sdk.DecodeRequest(ptr, length, &request); err != nil {
 		return errorResponse(err)
 	}
-	pan302plugin.Logger.Info("CloudHub 推送插件已启动", nil)
+	sdk.Logger.Info("CloudHub 推送插件已启动", nil)
 	return successResponse()
 }
 
 //go:wasmexport pan302_on_event
 func pan302OnEvent(ptr, length uint32) uint64 {
 	var event pb.StrmEvent
-	if err := pan302plugin.DecodeRequest(ptr, length, &event); err != nil {
+	if err := sdk.DecodeRequest(ptr, length, &event); err != nil {
 		return errorResponse(err)
 	}
 	if err := handleEvent(&event); err != nil {
-		pan302plugin.Logger.Error("CloudHub 事件处理失败", map[string]string{
+		sdk.Logger.Error("CloudHub 事件处理失败", map[string]string{
 			"eventId": event.EventId,
 			"error":   err.Error(),
 		})
@@ -70,7 +70,7 @@ func handleEvent(event *pb.StrmEvent) error {
 	default:
 		return nil
 	}
-	configResp, err := pan302plugin.Config.Read()
+	configResp, err := sdk.Config.Read()
 	if err != nil {
 		return fmt.Errorf("读取插件配置: %w", err)
 	}
@@ -90,7 +90,7 @@ func handleEvent(event *pb.StrmEvent) error {
 	config.NodeID = strings.TrimSpace(config.NodeID)
 	config.APIKey = strings.TrimSpace(config.APIKey)
 	if config.BaseURL == "" || config.NodeID == "" || config.APIKey == "" {
-		pan302plugin.Logger.Warn("请先配置 CloudHub API URL、Node ID 和 API Key", nil)
+		sdk.Logger.Warn("请先配置 CloudHub API URL、Node ID 和 API Key", nil)
 		return nil
 	}
 	if event.File == nil {
@@ -114,7 +114,7 @@ func handleEvent(event *pb.StrmEvent) error {
 			}
 		}
 		if !matched {
-			pan302plugin.Logger.Info("路径未在包含列表中，跳过通知", map[string]string{
+			sdk.Logger.Info("路径未在包含列表中，跳过通知", map[string]string{
 				"path":    cloudPath,
 				"eventId": event.EventId,
 			})
@@ -127,14 +127,14 @@ func handleEvent(event *pb.StrmEvent) error {
 	if event.Event == "strm.deleted" {
 		sha1 := event.File.Hashes["sha1"]
 		if sha1 == "" {
-			pan302plugin.Logger.Warn("删除事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
+			sdk.Logger.Warn("删除事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
 			return nil
 		}
 		result, err := client.DeleteOwners([]string{sha1})
 		if err != nil {
 			return err
 		}
-		pan302plugin.Logger.Info("CloudHub 删除推送成功", map[string]string{
+		sdk.Logger.Info("CloudHub 删除推送成功", map[string]string{
 			"eventId":      event.EventId,
 			"deletedOwner": strconv.FormatInt(result.DeletedOwners, 10),
 		})
@@ -142,15 +142,12 @@ func handleEvent(event *pb.StrmEvent) error {
 	}
 	resource := resourceFromEvent(event, config)
 	if resource.SHA1 == "" {
-		pan302plugin.Logger.Warn("创建事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
+		sdk.Logger.Warn("创建事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
 		return nil
 	}
 	enrichResourceWithMedia(event, &resource)
 	applyCloudHubRecognizableName(&resource)
-	pan302plugin.Logger.Info("发送 cloudhub 名称", map[string]string{
-		"Name":    resource.Name,
-		"Quality": resource.Quality,
-	})
+	sdk.Logger.Info("发送 cloudhub 名称", resource)
 	batchSize := config.BatchSize
 	if batchSize <= 0 || batchSize > 500 {
 		batchSize = 500
@@ -160,13 +157,13 @@ func handleEvent(event *pb.StrmEvent) error {
 		errStr := strings.ToLower(err.Error())
 		isConflict := strings.Contains(errStr, "unique constraint") || strings.Contains(errStr, "unique")
 		if isConflict && resource.SHA1 != "" {
-			pan302plugin.Logger.Warn("推送遇到唯一性冲突，尝试先删除已有归属再重新推送", map[string]string{
+			sdk.Logger.Warn("推送遇到唯一性冲突，尝试先删除已有归属再重新推送", map[string]string{
 				"eventId": event.EventId,
 				"sha1":    resource.SHA1,
 				"error":   err.Error(),
 			})
 			if _, delErr := client.DeleteOwners([]string{resource.SHA1}); delErr != nil {
-				pan302plugin.Logger.Warn("重试删除归属失败", map[string]string{
+				sdk.Logger.Warn("重试删除归属失败", map[string]string{
 					"eventId": event.EventId,
 					"sha1":    resource.SHA1,
 					"error":   delErr.Error(),
@@ -175,13 +172,13 @@ func handleEvent(event *pb.StrmEvent) error {
 			result, err = client.PushInBatches([]Resource{resource}, batchSize)
 		}
 		if err != nil {
-			pan302plugin.Logger.Error("调用 cloudhub 失败", map[string]string{
+			sdk.Logger.Error("调用 cloudhub 失败", map[string]string{
 				"error": err.Error(),
 			})
 			return nil
 		}
 	}
-	pan302plugin.Logger.Info("CloudHub 资源推送成功", map[string]string{
+	sdk.Logger.Info("CloudHub 资源推送成功", map[string]string{
 		"eventId":  event.EventId,
 		"inserted": strconv.FormatInt(result.Inserted, 10),
 		"updated":  strconv.FormatInt(result.Updated, 10),
@@ -300,9 +297,9 @@ func matchPath(path string, prefix string) bool {
 }
 
 func successResponse() uint64 {
-	return pan302plugin.EncodeResponse(&pb.LifecycleResponse{Ok: true})
+	return sdk.EncodeResponse(&pb.LifecycleResponse{Ok: true})
 }
 
 func errorResponse(err error) uint64 {
-	return pan302plugin.EncodeResponse(&pb.LifecycleResponse{Ok: false, Error: err.Error()})
+	return sdk.EncodeResponse(&pb.LifecycleResponse{Ok: false, Error: err.Error()})
 }
