@@ -9,6 +9,7 @@ import "plugin/v1/config.proto";
 import "plugin/v1/log.proto";
 import "plugin/v1/notify.proto";
 import "plugin/v1/http.proto";
+import "plugin/v1/media.proto";
 
 message HostRequest {
   string id = 1;
@@ -32,6 +33,7 @@ message HostRequest {
     LogWriteRequest log_write = 40;
     NotifySendRequest notify_send = 50;
     HTTPRequestArgs http_request = 60;
+    MediaServerConfigReadRequest media_server_config_read = 70;
   }
 }
 
@@ -52,6 +54,7 @@ message HostResponse {
     LogWriteResponse log_write = 40;
     NotifySendResponse notify_send = 50;
     HTTPResponseData http_response = 60;
+    MediaServerConfigReadResponse media_server_config_read = 70;
 
     HostError error = 100;
   }

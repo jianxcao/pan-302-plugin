@@ -58,6 +58,11 @@ Wasm 插件可以通过 SDK 发起 `host_call` 向宿主系统申请执行敏感
   - `body` (Bytes): 直接以字节传输，杜绝 base64 效率问题。
 - **返回**：`HTTPResponseData` (包含 `status` 状态码，`headers` 和字节类型的 `body`)。
 
+### media.server_config.read (对应 `MediaServerConfigReadRequest` / `media.proto`)
+- **权限**：`media.server_config.read`
+- **说明**：读取宿主系统配置的 Emby/Jellyfin 连接信息。宿主只返回配置快照，不代理具体媒体业务 API；插件可结合 `http.request` 自行调用 `/Items` 或其他 Emby/Jellyfin 接口。
+- **返回**：`MediaServerConfigReadResponse`，包含 `url`、`token`、`reverse_proxy_enabled`。未配置时返回空字符串字段。
+
 ### log.write (对应 `LogWriteRequest` / `log.proto`)
 - **说明**：将插件自身的运行日志输出并汇入到宿主系统的结构化日志系统（由宿主 zap/loki 等管理）。
 

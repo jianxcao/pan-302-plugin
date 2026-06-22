@@ -41,6 +41,99 @@ func TestNormalizeCloudHubPath(t *testing.T) {
 	assertEqual(t, "TV/Movie.mkv", normalizeCloudHubPath(`//TV\\Movie.mkv`))
 }
 
+func TestApplyMediaInfo(t *testing.T) {
+	resource := Resource{}
+	applyMediaInfo(&resource, &mediaItemsResponse{
+		Items: []mediaItem{{
+			Container:    "mkv",
+			Bitrate:      5802806,
+			RunTimeTicks: 27540490000,
+			MediaSources: []mediaSource{{
+				Container:    "mkv",
+				Bitrate:      5802806,
+				RunTimeTicks: 27540490000,
+				MediaStreams: []mediaStream{{
+					Type:       "Video",
+					Codec:      "hevc",
+					Width:      3840,
+					Height:     1608,
+					BitDepth:   10,
+					BitRate:    5802806,
+					VideoRange: "HDR 10",
+				}, {
+					Type:      "Audio",
+					Codec:     "aac",
+					Channels:  2,
+					Language:  "eng",
+					IsDefault: false,
+				}, {
+					Type:      "Audio",
+					Codec:     "eac3",
+					Channels:  6,
+					Language:  "chi",
+					IsDefault: true,
+				}},
+			}},
+		}},
+	})
+	assertEqual(t, "mkv", resource.Container)
+	assertEqual(t, "hevc", resource.VideoCodec)
+	assertEqual(t, "2160p", resource.VideoResolution)
+	assertEqual(t, int32(3840), resource.VideoWidth)
+	assertEqual(t, int32(1608), resource.VideoHeight)
+	assertEqual(t, "HDR", resource.VideoHDR)
+	assertEqual(t, int32(10), resource.VideoBitDepth)
+	assertEqual(t, "eac3", resource.AudioCodec)
+	assertEqual(t, int32(6), resource.AudioChannels)
+	assertEqual(t, "chi", resource.AudioLanguage)
+	assertEqual(t, int64(27540490000), resource.RuntimeTicks)
+	assertEqual(t, int64(5802806), resource.Bitrate)
+	assertEqual(t, "2160p HDR", resource.Quality)
+}
+
+func TestApplyMediaInfoKeepsResourceWhenEmpty(t *testing.T) {
+	resource := Resource{Name: "Movie.mkv", Quality: "1080p"}
+	applyMediaInfo(&resource, nil)
+	applyMediaInfo(&resource, &mediaItemsResponse{})
+	assertEqual(t, "Movie.mkv", resource.Name)
+	assertEqual(t, "1080p", resource.Quality)
+}
+
+func TestApplyCloudHubRecognizableNameMovie(t *testing.T) {
+	resource := Resource{
+		Name:            "Inception.2010.mkv",
+		Path:            "/Movies/Inception (2010)/Inception.2010.mkv",
+		Title:           "Inception.2010",
+		Type:            "movie",
+		Year:            "2010",
+		VideoResolution: "2160p",
+		FPS:             23.976,
+		VideoHDR:        "HDR",
+		VideoCodec:      "hevc",
+		AudioCodec:      "eac3",
+	}
+	applyCloudHubRecognizableName(&resource)
+	assertEqual(t, "Inception (2010)/Inception (2010) - 2160p 23.976fps HDR HEVC EAC3.mkv", resource.Name)
+}
+
+func TestApplyCloudHubRecognizableNameTV(t *testing.T) {
+	resource := Resource{
+		Name:            "问心 - S01E04 - 第 4 集.mkv",
+		Path:            "/TV/问心 (2023)/Season 2/问心 - S01E04 - 第 4 集.mkv",
+		Title:           "问心 - S01E04 - 第 4 集",
+		Type:            "tv",
+		Season:          1,
+		Episode:         4,
+		VideoResolution: "2160p",
+		FPS:             25,
+		VideoHDR:        "HDR",
+		VideoCodec:      "hevc",
+		AudioCodec:      "eac3",
+	}
+	applyCloudHubRecognizableName(&resource)
+	assertEqual(t, "问心 (2023)/Season 1/问心 S01E04 - 2160p 25fps HDR HEVC.mkv", resource.Name)
+}
+
 func assertEqual[T comparable](t *testing.T, expected, actual T) {
 	t.Helper()
 	if actual != expected {

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package plugin.v1;
+
+option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
+
+message MediaServerConfigReadRequest {}
+
+message MediaServerConfigReadResponse {
+  string url = 1;
+  string token = 2;
+  bool reverse_proxy_enabled = 3;
+}

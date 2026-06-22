@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "cloudhub-push",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "displayName": "CloudHub 资源推送",
   "description": "检测到 STRM 创建、覆盖、移动、复制或删除时，自动将对应网盘文件信息推送到 CloudHub",
   "author": "media302",
@@ -20,6 +20,7 @@
     "log.write",
     "config.read",
     "http.request",
+    "media.server_config.read",
     "event.strm.read"
   ],
   "ui": {

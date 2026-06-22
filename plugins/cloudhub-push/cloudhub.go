@@ -17,25 +17,38 @@ type Client struct {
 }
 
 type Resource struct {
-	SHA1         string `json:"sha1"`
-	PreSHA1      string `json:"pre_sha1,omitempty"`
-	Size         string `json:"size,omitempty"`
-	Name         string `json:"name,omitempty"`
-	RawName      string `json:"raw_name,omitempty"`
-	Path         string `json:"path,omitempty"`
-	PickCode     string `json:"pick_code,omitempty"`
-	Title        string `json:"title,omitempty"`
-	TMDBID       string `json:"tmdb_id,omitempty"`
-	Type         string `json:"type,omitempty"`
-	Season       int    `json:"season,omitempty"`
-	Episode      int    `json:"episode,omitempty"`
-	StartSeason  int    `json:"start_season,omitempty"`
-	StartEpisode int    `json:"start_episode,omitempty"`
-	IsFullSeason bool   `json:"is_full_season,omitempty"`
-	Quality      string `json:"quality,omitempty"`
-	Year         string `json:"year,omitempty"`
-	Category     string `json:"category,omitempty"`
-	Actors       string `json:"actors,omitempty"`
+	SHA1            string  `json:"sha1"`
+	PreSHA1         string  `json:"pre_sha1,omitempty"`
+	Size            string  `json:"size,omitempty"`
+	Name            string  `json:"name,omitempty"`
+	RawName         string  `json:"raw_name,omitempty"`
+	Path            string  `json:"path,omitempty"`
+	PickCode        string  `json:"pick_code,omitempty"`
+	Title           string  `json:"title,omitempty"`
+	TMDBID          string  `json:"tmdb_id,omitempty"`
+	Type            string  `json:"type,omitempty"`
+	Season          int     `json:"season,omitempty"`
+	Episode         int     `json:"episode,omitempty"`
+	StartSeason     int     `json:"start_season,omitempty"`
+	StartEpisode    int     `json:"start_episode,omitempty"`
+	IsFullSeason    bool    `json:"is_full_season,omitempty"`
+	Quality         string  `json:"quality,omitempty"`
+	Container       string  `json:"container,omitempty"`
+	VideoCodec      string  `json:"video_codec,omitempty"`
+	VideoResolution string  `json:"video_resolution,omitempty"`
+	VideoWidth      int32   `json:"video_width,omitempty"`
+	VideoHeight     int32   `json:"video_height,omitempty"`
+	VideoHDR        string  `json:"video_hdr,omitempty"`
+	VideoBitDepth   int32   `json:"video_bit_depth,omitempty"`
+	FPS             float64 `json:"fps,omitempty"`
+	AudioCodec      string  `json:"audio_codec,omitempty"`
+	AudioChannels   int32   `json:"audio_channels,omitempty"`
+	AudioLanguage   string  `json:"audio_language,omitempty"`
+	RuntimeTicks    int64   `json:"runtime_ticks,omitempty"`
+	Bitrate         int64   `json:"bitrate,omitempty"`
+	Year            string  `json:"year,omitempty"`
+	Category        string  `json:"category,omitempty"`
+	Actors          string  `json:"actors,omitempty"`
 	//  "schema": "cloud_resource.v1",
 	Schema    string `json:"Schema,omitempty"`
 	OwnerName string `json:"ownerName,omitempty"`

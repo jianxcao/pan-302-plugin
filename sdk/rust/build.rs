@@ -9,6 +9,7 @@ fn main() {
         "../../proto/plugin/v1/log.proto",
         "../../proto/plugin/v1/notify.proto",
         "../../proto/plugin/v1/http.proto",
+        "../../proto/plugin/v1/media.proto",
         "../../proto/plugin/v1/lifecycle.proto",
         "../../proto/plugin/v1/route.proto",
     ];

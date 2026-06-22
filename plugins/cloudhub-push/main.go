@@ -145,6 +145,12 @@ func handleEvent(event *pb.StrmEvent) error {
 		pan302plugin.Logger.Warn("创建事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
 		return nil
 	}
+	enrichResourceWithMedia(event, &resource)
+	applyCloudHubRecognizableName(&resource)
+	pan302plugin.Logger.Info("发送 cloudhub 名称", map[string]string{
+		"Name":    resource.Name,
+		"Quality": resource.Quality,
+	})
 	batchSize := config.BatchSize
 	if batchSize <= 0 || batchSize > 500 {
 		batchSize = 500

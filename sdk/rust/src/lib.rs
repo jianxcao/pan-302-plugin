@@ -9,6 +9,7 @@ pub mod driver;
 pub mod strm;
 pub mod config;
 pub mod http;
+pub mod media;
 pub mod logger;
 
 pub use abi::*;
@@ -32,6 +33,7 @@ pub use config::read as config_read;
 pub use config::write as config_write;
 
 pub use http::request as http_request;
+pub use media::server_config as media_server_config;
 
 pub use logger::notify::send as notify_send;
 
@@ -39,4 +41,3 @@ pub use logger::notify::send as notify_send;
 pub fn log(level: &str, message: &str) {
     logger::write(level, message, std::collections::HashMap::new());
 }
-

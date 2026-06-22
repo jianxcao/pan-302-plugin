@@ -7,11 +7,12 @@
 package pluginv1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -41,6 +42,7 @@ type HostRequest struct {
 	//	*HostRequest_LogWrite
 	//	*HostRequest_NotifySend
 	//	*HostRequest_HttpRequest
+	//	*HostRequest_MediaServerConfigRead
 	Request       isHostRequest_Request `protobuf_oneof:"request"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -225,6 +227,15 @@ func (x *HostRequest) GetHttpRequest() *HTTPRequestArgs {
 	return nil
 }
 
+func (x *HostRequest) GetMediaServerConfigRead() *MediaServerConfigReadRequest {
+	if x != nil {
+		if x, ok := x.Request.(*HostRequest_MediaServerConfigRead); ok {
+			return x.MediaServerConfigRead
+		}
+	}
+	return nil
+}
+
 type isHostRequest_Request interface {
 	isHostRequest_Request()
 }
@@ -289,6 +300,10 @@ type HostRequest_HttpRequest struct {
 	HttpRequest *HTTPRequestArgs `protobuf:"bytes,60,opt,name=http_request,json=httpRequest,proto3,oneof"`
 }
 
+type HostRequest_MediaServerConfigRead struct {
+	MediaServerConfigRead *MediaServerConfigReadRequest `protobuf:"bytes,70,opt,name=media_server_config_read,json=mediaServerConfigRead,proto3,oneof"`
+}
+
 func (*HostRequest_DriverList) isHostRequest_Request() {}
 
 func (*HostRequest_DriverRead) isHostRequest_Request() {}
@@ -319,6 +334,8 @@ func (*HostRequest_NotifySend) isHostRequest_Request() {}
 
 func (*HostRequest_HttpRequest) isHostRequest_Request() {}
 
+func (*HostRequest_MediaServerConfigRead) isHostRequest_Request() {}
+
 type HostResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -337,6 +354,7 @@ type HostResponse struct {
 	//	*HostResponse_LogWrite
 	//	*HostResponse_NotifySend
 	//	*HostResponse_HttpResponse
+	//	*HostResponse_MediaServerConfigRead
 	//	*HostResponse_Error
 	Result        isHostResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
@@ -504,6 +522,15 @@ func (x *HostResponse) GetHttpResponse() *HTTPResponseData {
 	return nil
 }
 
+func (x *HostResponse) GetMediaServerConfigRead() *MediaServerConfigReadResponse {
+	if x != nil {
+		if x, ok := x.Result.(*HostResponse_MediaServerConfigRead); ok {
+			return x.MediaServerConfigRead
+		}
+	}
+	return nil
+}
+
 func (x *HostResponse) GetError() *HostError {
 	if x != nil {
 		if x, ok := x.Result.(*HostResponse_Error); ok {
@@ -569,6 +596,10 @@ type HostResponse_HttpResponse struct {
 	HttpResponse *HTTPResponseData `protobuf:"bytes,60,opt,name=http_response,json=httpResponse,proto3,oneof"`
 }
 
+type HostResponse_MediaServerConfigRead struct {
+	MediaServerConfigRead *MediaServerConfigReadResponse `protobuf:"bytes,70,opt,name=media_server_config_read,json=mediaServerConfigRead,proto3,oneof"`
+}
+
 type HostResponse_Error struct {
 	Error *HostError `protobuf:"bytes,100,opt,name=error,proto3,oneof"`
 }
@@ -598,6 +629,8 @@ func (*HostResponse_LogWrite) isHostResponse_Result() {}
 func (*HostResponse_NotifySend) isHostResponse_Result() {}
 
 func (*HostResponse_HttpResponse) isHostResponse_Result() {}
+
+func (*HostResponse_MediaServerConfigRead) isHostResponse_Result() {}
 
 func (*HostResponse_Error) isHostResponse_Result() {}
 
@@ -657,7 +690,7 @@ var File_plugin_v1_abi_proto protoreflect.FileDescriptor
 
 const file_plugin_v1_abi_proto_rawDesc = "" +
 	"\n" +
-	"\x13plugin/v1/abi.proto\x12\tplugin.v1\x1a\x16plugin/v1/driver.proto\x1a\x14plugin/v1/strm.proto\x1a\x16plugin/v1/config.proto\x1a\x13plugin/v1/log.proto\x1a\x16plugin/v1/notify.proto\x1a\x14plugin/v1/http.proto\"\x88\b\n" +
+	"\x13plugin/v1/abi.proto\x12\tplugin.v1\x1a\x16plugin/v1/driver.proto\x1a\x14plugin/v1/strm.proto\x1a\x16plugin/v1/config.proto\x1a\x13plugin/v1/log.proto\x1a\x16plugin/v1/notify.proto\x1a\x14plugin/v1/http.proto\x1a\x15plugin/v1/media.proto\"\xec\b\n" +
 	"\vHostRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12?\n" +
 	"\vdriver_list\x18\n" +
@@ -684,8 +717,9 @@ const file_plugin_v1_abi_proto_rawDesc = "" +
 	"\tlog_write\x18( \x01(\v2\x1a.plugin.v1.LogWriteRequestH\x00R\blogWrite\x12?\n" +
 	"\vnotify_send\x182 \x01(\v2\x1c.plugin.v1.NotifySendRequestH\x00R\n" +
 	"notifySend\x12?\n" +
-	"\fhttp_request\x18< \x01(\v2\x1a.plugin.v1.HTTPRequestArgsH\x00R\vhttpRequestB\t\n" +
-	"\arequest\"\xc5\a\n" +
+	"\fhttp_request\x18< \x01(\v2\x1a.plugin.v1.HTTPRequestArgsH\x00R\vhttpRequest\x12b\n" +
+	"\x18media_server_config_read\x18F \x01(\v2'.plugin.v1.MediaServerConfigReadRequestH\x00R\x15mediaServerConfigReadB\t\n" +
+	"\arequest\"\xaa\b\n" +
 	"\fHostResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12@\n" +
 	"\vdriver_list\x18\n" +
@@ -707,7 +741,8 @@ const file_plugin_v1_abi_proto_rawDesc = "" +
 	"\tlog_write\x18( \x01(\v2\x1b.plugin.v1.LogWriteResponseH\x00R\blogWrite\x12@\n" +
 	"\vnotify_send\x182 \x01(\v2\x1d.plugin.v1.NotifySendResponseH\x00R\n" +
 	"notifySend\x12B\n" +
-	"\rhttp_response\x18< \x01(\v2\x1b.plugin.v1.HTTPResponseDataH\x00R\fhttpResponse\x12,\n" +
+	"\rhttp_response\x18< \x01(\v2\x1b.plugin.v1.HTTPResponseDataH\x00R\fhttpResponse\x12c\n" +
+	"\x18media_server_config_read\x18F \x01(\v2(.plugin.v1.MediaServerConfigReadResponseH\x00R\x15mediaServerConfigRead\x12,\n" +
 	"\x05error\x18d \x01(\v2\x14.plugin.v1.HostErrorH\x00R\x05errorB\b\n" +
 	"\x06result\"9\n" +
 	"\tHostError\x12\x12\n" +
@@ -728,36 +763,38 @@ func file_plugin_v1_abi_proto_rawDescGZIP() []byte {
 
 var file_plugin_v1_abi_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_plugin_v1_abi_proto_goTypes = []any{
-	(*HostRequest)(nil),            // 0: plugin.v1.HostRequest
-	(*HostResponse)(nil),           // 1: plugin.v1.HostResponse
-	(*HostError)(nil),              // 2: plugin.v1.HostError
-	(*DriverListRequest)(nil),      // 3: plugin.v1.DriverListRequest
-	(*DriverReadRequest)(nil),      // 4: plugin.v1.DriverReadRequest
-	(*DriverLinkRequest)(nil),      // 5: plugin.v1.DriverLinkRequest
-	(*DriverMkdirRequest)(nil),     // 6: plugin.v1.DriverMkdirRequest
-	(*DriverRenameRequest)(nil),    // 7: plugin.v1.DriverRenameRequest
-	(*DriverDeleteRequest)(nil),    // 8: plugin.v1.DriverDeleteRequest
-	(*DriverMoveCopyRequest)(nil),  // 9: plugin.v1.DriverMoveCopyRequest
-	(*StrmWriteRequest)(nil),       // 10: plugin.v1.StrmWriteRequest
-	(*StrmDeleteRequest)(nil),      // 11: plugin.v1.StrmDeleteRequest
-	(*ConfigReadRequest)(nil),      // 12: plugin.v1.ConfigReadRequest
-	(*ConfigWriteRequest)(nil),     // 13: plugin.v1.ConfigWriteRequest
-	(*LogWriteRequest)(nil),        // 14: plugin.v1.LogWriteRequest
-	(*NotifySendRequest)(nil),      // 15: plugin.v1.NotifySendRequest
-	(*HTTPRequestArgs)(nil),        // 16: plugin.v1.HTTPRequestArgs
-	(*DriverListResponse)(nil),     // 17: plugin.v1.DriverListResponse
-	(*DriverReadResponse)(nil),     // 18: plugin.v1.DriverReadResponse
-	(*DriverLinkResponse)(nil),     // 19: plugin.v1.DriverLinkResponse
-	(*DriverObject)(nil),           // 20: plugin.v1.DriverObject
-	(*DriverRenameResponse)(nil),   // 21: plugin.v1.DriverRenameResponse
-	(*DriverDeleteResponse)(nil),   // 22: plugin.v1.DriverDeleteResponse
-	(*DriverMoveCopyResponse)(nil), // 23: plugin.v1.DriverMoveCopyResponse
-	(*StrmOperationResult)(nil),    // 24: plugin.v1.StrmOperationResult
-	(*ConfigReadResponse)(nil),     // 25: plugin.v1.ConfigReadResponse
-	(*ConfigWriteResponse)(nil),    // 26: plugin.v1.ConfigWriteResponse
-	(*LogWriteResponse)(nil),       // 27: plugin.v1.LogWriteResponse
-	(*NotifySendResponse)(nil),     // 28: plugin.v1.NotifySendResponse
-	(*HTTPResponseData)(nil),       // 29: plugin.v1.HTTPResponseData
+	(*HostRequest)(nil),                   // 0: plugin.v1.HostRequest
+	(*HostResponse)(nil),                  // 1: plugin.v1.HostResponse
+	(*HostError)(nil),                     // 2: plugin.v1.HostError
+	(*DriverListRequest)(nil),             // 3: plugin.v1.DriverListRequest
+	(*DriverReadRequest)(nil),             // 4: plugin.v1.DriverReadRequest
+	(*DriverLinkRequest)(nil),             // 5: plugin.v1.DriverLinkRequest
+	(*DriverMkdirRequest)(nil),            // 6: plugin.v1.DriverMkdirRequest
+	(*DriverRenameRequest)(nil),           // 7: plugin.v1.DriverRenameRequest
+	(*DriverDeleteRequest)(nil),           // 8: plugin.v1.DriverDeleteRequest
+	(*DriverMoveCopyRequest)(nil),         // 9: plugin.v1.DriverMoveCopyRequest
+	(*StrmWriteRequest)(nil),              // 10: plugin.v1.StrmWriteRequest
+	(*StrmDeleteRequest)(nil),             // 11: plugin.v1.StrmDeleteRequest
+	(*ConfigReadRequest)(nil),             // 12: plugin.v1.ConfigReadRequest
+	(*ConfigWriteRequest)(nil),            // 13: plugin.v1.ConfigWriteRequest
+	(*LogWriteRequest)(nil),               // 14: plugin.v1.LogWriteRequest
+	(*NotifySendRequest)(nil),             // 15: plugin.v1.NotifySendRequest
+	(*HTTPRequestArgs)(nil),               // 16: plugin.v1.HTTPRequestArgs
+	(*MediaServerConfigReadRequest)(nil),  // 17: plugin.v1.MediaServerConfigReadRequest
+	(*DriverListResponse)(nil),            // 18: plugin.v1.DriverListResponse
+	(*DriverReadResponse)(nil),            // 19: plugin.v1.DriverReadResponse
+	(*DriverLinkResponse)(nil),            // 20: plugin.v1.DriverLinkResponse
+	(*DriverObject)(nil),                  // 21: plugin.v1.DriverObject
+	(*DriverRenameResponse)(nil),          // 22: plugin.v1.DriverRenameResponse
+	(*DriverDeleteResponse)(nil),          // 23: plugin.v1.DriverDeleteResponse
+	(*DriverMoveCopyResponse)(nil),        // 24: plugin.v1.DriverMoveCopyResponse
+	(*StrmOperationResult)(nil),           // 25: plugin.v1.StrmOperationResult
+	(*ConfigReadResponse)(nil),            // 26: plugin.v1.ConfigReadResponse
+	(*ConfigWriteResponse)(nil),           // 27: plugin.v1.ConfigWriteResponse
+	(*LogWriteResponse)(nil),              // 28: plugin.v1.LogWriteResponse
+	(*NotifySendResponse)(nil),            // 29: plugin.v1.NotifySendResponse
+	(*HTTPResponseData)(nil),              // 30: plugin.v1.HTTPResponseData
+	(*MediaServerConfigReadResponse)(nil), // 31: plugin.v1.MediaServerConfigReadResponse
 }
 var file_plugin_v1_abi_proto_depIdxs = []int32{
 	3,  // 0: plugin.v1.HostRequest.driver_list:type_name -> plugin.v1.DriverListRequest
@@ -775,25 +812,27 @@ var file_plugin_v1_abi_proto_depIdxs = []int32{
 	14, // 12: plugin.v1.HostRequest.log_write:type_name -> plugin.v1.LogWriteRequest
 	15, // 13: plugin.v1.HostRequest.notify_send:type_name -> plugin.v1.NotifySendRequest
 	16, // 14: plugin.v1.HostRequest.http_request:type_name -> plugin.v1.HTTPRequestArgs
-	17, // 15: plugin.v1.HostResponse.driver_list:type_name -> plugin.v1.DriverListResponse
-	18, // 16: plugin.v1.HostResponse.driver_read:type_name -> plugin.v1.DriverReadResponse
-	19, // 17: plugin.v1.HostResponse.driver_link:type_name -> plugin.v1.DriverLinkResponse
-	20, // 18: plugin.v1.HostResponse.driver_mkdir:type_name -> plugin.v1.DriverObject
-	21, // 19: plugin.v1.HostResponse.driver_rename:type_name -> plugin.v1.DriverRenameResponse
-	22, // 20: plugin.v1.HostResponse.driver_delete:type_name -> plugin.v1.DriverDeleteResponse
-	23, // 21: plugin.v1.HostResponse.driver_move_copy:type_name -> plugin.v1.DriverMoveCopyResponse
-	24, // 22: plugin.v1.HostResponse.strm_result:type_name -> plugin.v1.StrmOperationResult
-	25, // 23: plugin.v1.HostResponse.config_read:type_name -> plugin.v1.ConfigReadResponse
-	26, // 24: plugin.v1.HostResponse.config_write:type_name -> plugin.v1.ConfigWriteResponse
-	27, // 25: plugin.v1.HostResponse.log_write:type_name -> plugin.v1.LogWriteResponse
-	28, // 26: plugin.v1.HostResponse.notify_send:type_name -> plugin.v1.NotifySendResponse
-	29, // 27: plugin.v1.HostResponse.http_response:type_name -> plugin.v1.HTTPResponseData
-	2,  // 28: plugin.v1.HostResponse.error:type_name -> plugin.v1.HostError
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	17, // 15: plugin.v1.HostRequest.media_server_config_read:type_name -> plugin.v1.MediaServerConfigReadRequest
+	18, // 16: plugin.v1.HostResponse.driver_list:type_name -> plugin.v1.DriverListResponse
+	19, // 17: plugin.v1.HostResponse.driver_read:type_name -> plugin.v1.DriverReadResponse
+	20, // 18: plugin.v1.HostResponse.driver_link:type_name -> plugin.v1.DriverLinkResponse
+	21, // 19: plugin.v1.HostResponse.driver_mkdir:type_name -> plugin.v1.DriverObject
+	22, // 20: plugin.v1.HostResponse.driver_rename:type_name -> plugin.v1.DriverRenameResponse
+	23, // 21: plugin.v1.HostResponse.driver_delete:type_name -> plugin.v1.DriverDeleteResponse
+	24, // 22: plugin.v1.HostResponse.driver_move_copy:type_name -> plugin.v1.DriverMoveCopyResponse
+	25, // 23: plugin.v1.HostResponse.strm_result:type_name -> plugin.v1.StrmOperationResult
+	26, // 24: plugin.v1.HostResponse.config_read:type_name -> plugin.v1.ConfigReadResponse
+	27, // 25: plugin.v1.HostResponse.config_write:type_name -> plugin.v1.ConfigWriteResponse
+	28, // 26: plugin.v1.HostResponse.log_write:type_name -> plugin.v1.LogWriteResponse
+	29, // 27: plugin.v1.HostResponse.notify_send:type_name -> plugin.v1.NotifySendResponse
+	30, // 28: plugin.v1.HostResponse.http_response:type_name -> plugin.v1.HTTPResponseData
+	31, // 29: plugin.v1.HostResponse.media_server_config_read:type_name -> plugin.v1.MediaServerConfigReadResponse
+	2,  // 30: plugin.v1.HostResponse.error:type_name -> plugin.v1.HostError
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_plugin_v1_abi_proto_init() }
@@ -807,6 +846,7 @@ func file_plugin_v1_abi_proto_init() {
 	file_plugin_v1_log_proto_init()
 	file_plugin_v1_notify_proto_init()
 	file_plugin_v1_http_proto_init()
+	file_plugin_v1_media_proto_init()
 	file_plugin_v1_abi_proto_msgTypes[0].OneofWrappers = []any{
 		(*HostRequest_DriverList)(nil),
 		(*HostRequest_DriverRead)(nil),
@@ -823,6 +863,7 @@ func file_plugin_v1_abi_proto_init() {
 		(*HostRequest_LogWrite)(nil),
 		(*HostRequest_NotifySend)(nil),
 		(*HostRequest_HttpRequest)(nil),
+		(*HostRequest_MediaServerConfigRead)(nil),
 	}
 	file_plugin_v1_abi_proto_msgTypes[1].OneofWrappers = []any{
 		(*HostResponse_DriverList)(nil),
@@ -838,6 +879,7 @@ func file_plugin_v1_abi_proto_init() {
 		(*HostResponse_LogWrite)(nil),
 		(*HostResponse_NotifySend)(nil),
 		(*HostResponse_HttpResponse)(nil),
+		(*HostResponse_MediaServerConfigRead)(nil),
 		(*HostResponse_Error)(nil),
 	}
 	type x struct{}

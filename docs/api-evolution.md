@@ -35,3 +35,4 @@ message DriverObject {
 - **零 base64 依赖**：对于二进制数据（如 HTTP Body），应直接使用 `bytes` 类型传输，避免使用 base64 等字符转码降低效率。
 - **自描述 JSON 支持**：当插件需要交互复杂的多维动态配置时，请使用 `google.protobuf.Struct` 代替 `bytes` 以支持自描述序列化。
 - **时间标准**：所有时间信息必须统一采用 `google.protobuf.Timestamp` 原生时间表示，不要使用自定义的 RFC3339 字符串。
+- **敏感宿主配置收口**：当插件需要使用宿主已有的敏感系统配置（例如 Emby/Jellyfin token）时，优先新增受权限保护的只读 Host API（例如 `media.server_config.read`），不要把 token 直接暴露成插件可读写的普通配置字段。
