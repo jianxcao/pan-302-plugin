@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -50,12 +49,12 @@ func pan302Init(ptr, length uint32) uint64 {
 
 //go:wasmexport pan302_on_event
 func pan302OnEvent(ptr, length uint32) uint64 {
-	var event pb.StrmEvent
+	var event pb.MediaEvent
 	if err := sdk.DecodeRequest(ptr, length, &event); err != nil {
 		return errorResponse(err)
 	}
-	if err := handleEvent(&event); err != nil {
-		sdk.Logger.Error("CloudHub 事件处理失败", map[string]string{
+	if err := handleMediaEvent(&event); err != nil {
+		sdk.Logger.Error("CloudHub 媒体事件处理失败", map[string]string{
 			"eventId": event.EventId,
 			"error":   err.Error(),
 		})
@@ -64,81 +63,43 @@ func pan302OnEvent(ptr, length uint32) uint64 {
 	return successResponse()
 }
 
-func handleEvent(event *pb.StrmEvent) error {
+func handleMediaEvent(event *pb.MediaEvent) error {
 	switch event.Event {
-	case "strm.created", "strm.overwritten", "strm.renamed", "strm.moved", "strm.copied", "strm.deleted":
+	case "media.item.added", "media.item.deleted":
 	default:
 		return nil
 	}
-	if event.File == nil {
-		sdk.Logger.Warn("事件不包含文件数据库快照，已跳过", map[string]string{
-			"eventId":      event.EventId,
-			"event":        event.Event,
-			"operation":    event.Operation,
-			"recordStatus": event.RecordStatus,
+	if event.Resource == nil {
+		sdk.Logger.Warn("媒体事件未解析到 pan-302 资源，已跳过", map[string]string{
+			"eventId": event.EventId,
+			"event":   event.Event,
 		})
 		return nil
 	}
-	sdk.Logger.Info("收到事件：File", event.File)
 	configResp, err := sdk.Config.Read()
 	if err != nil {
 		return fmt.Errorf("读取插件配置: %w", err)
 	}
-	if configResp.Config == nil {
-		return fmt.Errorf("插件配置为空")
-	}
-	configJSON, err := configResp.Config.MarshalJSON()
+	config, ok, err := parsePluginConfig(configResp.Config)
 	if err != nil {
-		return fmt.Errorf("marshal config: %w", err)
+		return err
 	}
-	var config PluginConfig
-	if err := json.Unmarshal(configJSON, &config); err != nil {
-		return fmt.Errorf("unmarshal config: %w", err)
-	}
-
-	config.BaseURL = strings.TrimSpace(config.BaseURL)
-	config.NodeID = strings.TrimSpace(config.NodeID)
-	config.APIKey = strings.TrimSpace(config.APIKey)
-	if config.BaseURL == "" || config.NodeID == "" || config.APIKey == "" {
-		sdk.Logger.Warn("请先配置 CloudHub API URL、Node ID 和 API Key", nil)
+	if !ok {
 		return nil
 	}
-
-	cloudPath := ""
-	if event.Strm != nil {
-		cloudPath = event.Strm.CloudPath
-	}
-	if cloudPath == "" {
-		cloudPath = event.File.Path
-	}
-
-	if len(config.IncludePaths) > 0 {
-		matched := false
-		for _, prefix := range config.IncludePaths {
-			if matchPath(cloudPath, prefix) {
-				matched = true
-				break
-			}
-		}
-		if !matched {
-			sdk.Logger.Info("路径未在包含列表中，跳过通知", map[string]string{
-				"path":    cloudPath,
-				"eventId": event.EventId,
-			})
-			return nil
-		}
+	cloudPath := event.Resource.Path
+	if !includePathMatched(config, cloudPath, event.EventId) {
+		return nil
 	}
 
 	client := NewClient(config.BaseURL, config.NodeID, config.APIKey)
 	client.PublicBaseURL = config.PublicBaseURL
-	if event.Event == "strm.deleted" {
-		sha1 := event.File.Hashes["sha1"]
+	if event.Event == "media.item.deleted" {
+		sha1 := event.Resource.Hashes["sha1"]
 		if sha1 == "" {
-			sdk.Logger.Warn("删除事件缺少 SHA1，已跳过", map[string]string{
-				"eventId":      event.EventId,
-				"fileId":       event.File.Id,
-				"path":         cloudPath,
-				"recordStatus": event.RecordStatus,
+			sdk.Logger.Warn("媒体删除事件缺少 SHA1，已跳过", map[string]string{
+				"eventId": event.EventId,
+				"path":    cloudPath,
 			})
 			return nil
 		}
@@ -146,19 +107,60 @@ func handleEvent(event *pb.StrmEvent) error {
 		if err != nil {
 			return err
 		}
-		sdk.Logger.Info("CloudHub 删除推送成功", map[string]string{
+		sdk.Logger.Info("CloudHub 媒体删除推送成功", map[string]string{
 			"eventId":      event.EventId,
 			"deletedOwner": strconv.FormatInt(result.DeletedOwners, 10),
 		})
 		return nil
 	}
-	resource := resourceFromEvent(event, config)
+	resource := resourceFromMediaEvent(event, config)
 	if resource.SHA1 == "" {
-		sdk.Logger.Warn("创建事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
+		sdk.Logger.Warn("媒体新增事件缺少 SHA1，已跳过", map[string]string{"eventId": event.EventId})
 		return nil
 	}
-	// enrichResourceWithMedia(event, &resource)
-	applyCloudHubRecognizableName(&resource)
+	sdk.Logger.Debug("媒体新增事件resour", resource)
+	return pushResource(client, resource, config, event.EventId)
+}
+
+func parsePluginConfig(value interface{ MarshalJSON() ([]byte, error) }) (PluginConfig, bool, error) {
+	var config PluginConfig
+	if value == nil {
+		return config, false, fmt.Errorf("插件配置为空")
+	}
+	configJSON, err := value.MarshalJSON()
+	if err != nil {
+		return config, false, fmt.Errorf("marshal config: %w", err)
+	}
+	if err := json.Unmarshal(configJSON, &config); err != nil {
+		return config, false, fmt.Errorf("unmarshal config: %w", err)
+	}
+	config.BaseURL = strings.TrimSpace(config.BaseURL)
+	config.NodeID = strings.TrimSpace(config.NodeID)
+	config.APIKey = strings.TrimSpace(config.APIKey)
+	if config.BaseURL == "" || config.NodeID == "" || config.APIKey == "" {
+		sdk.Logger.Warn("请先配置 CloudHub API URL、Node ID 和 API Key", nil)
+		return config, false, nil
+	}
+	return config, true, nil
+}
+
+func includePathMatched(config PluginConfig, cloudPath, eventID string) bool {
+	if len(config.IncludePaths) == 0 {
+		return true
+	}
+	for _, prefix := range config.IncludePaths {
+		if matchPath(cloudPath, prefix) {
+			return true
+		}
+	}
+	sdk.Logger.Info("路径未在包含列表中，跳过通知", map[string]string{
+		"path":    cloudPath,
+		"eventId": eventID,
+	})
+	return false
+}
+
+func pushResource(client *Client, resource Resource, config PluginConfig, eventID string) error {
 	sdk.Logger.Info("发送 cloudhub 名称", resource)
 	batchSize := config.BatchSize
 	if batchSize <= 0 || batchSize > 500 {
@@ -170,13 +172,13 @@ func handleEvent(event *pb.StrmEvent) error {
 		isConflict := strings.Contains(errStr, "unique constraint") || strings.Contains(errStr, "unique")
 		if isConflict && resource.SHA1 != "" {
 			sdk.Logger.Warn("推送遇到唯一性冲突，尝试先删除已有归属再重新推送", map[string]string{
-				"eventId": event.EventId,
+				"eventId": eventID,
 				"sha1":    resource.SHA1,
 				"error":   err.Error(),
 			})
 			if _, delErr := client.DeleteOwners([]string{resource.SHA1}); delErr != nil {
 				sdk.Logger.Warn("重试删除归属失败", map[string]string{
-					"eventId": event.EventId,
+					"eventId": eventID,
 					"sha1":    resource.SHA1,
 					"error":   delErr.Error(),
 				})
@@ -191,50 +193,93 @@ func handleEvent(event *pb.StrmEvent) error {
 		}
 	}
 	sdk.Logger.Info("CloudHub 资源推送成功", map[string]string{
-		"eventId":  event.EventId,
+		"eventId":  eventID,
 		"inserted": strconv.FormatInt(result.Inserted, 10),
 		"updated":  strconv.FormatInt(result.Updated, 10),
 	})
 	return nil
 }
 
-func resourceFromEvent(event *pb.StrmEvent, cfg PluginConfig) Resource {
-	file := event.File
-	cloudPath := ""
-	if event.Strm != nil {
-		cloudPath = event.Strm.CloudPath
-	}
-	if cloudPath == "" {
-		cloudPath = file.Path
-	}
+func resourceFromMediaEvent(event *pb.MediaEvent, cfg PluginConfig) Resource {
+	file := event.Resource
+	cloudPath := file.Path
 	season, episode := parseSeasonEpisode(file.Name)
+	if season == 0 && episode == 0 && event.Item != nil {
+		season = int(event.Item.ParentIndexNumber)
+		episode = int(event.Item.IndexNumber)
+	}
 	mediaType := "movie"
 	if season > 0 || episode > 0 {
 		mediaType = "tv"
 	}
-	title := file.Name
-	if extension := filepath.Ext(title); extension != "" {
-		title = strings.TrimSuffix(title, extension)
-	}
 	sha1 := file.Hashes["sha1"]
-	preSha1 := file.Hashes["presha1"]
-	return Resource{
+	resource := Resource{
 		SHA1:      sha1,
-		PreSHA1:   preSha1,
 		Size:      strconv.FormatInt(file.Size, 10),
 		Name:      file.Name,
-		RawName:   file.Name,
 		Path:      cloudPath,
 		PickCode:  file.PickCode,
-		Title:     title,
 		Type:      mediaType,
 		Season:    season,
 		Episode:   episode,
 		Quality:   parseQuality(file.Name),
-		Year:      parseYear(cloudPath, file.Name),
+		Year:      parseMediaEventYear(event, cloudPath, file.Name),
 		Schema:    "cloud_resource.v1",
 		OwnerName: cfg.NodeID,
 	}
+	if event.Item != nil {
+		resource.Title = mediaTitle(event.Item)
+		resource.Container = event.Item.Container
+		resource.VideoWidth = event.Item.Width
+		resource.VideoHeight = event.Item.Height
+		resource.RuntimeTicks = event.Item.RuntimeTicks
+		resource.Bitrate = event.Item.Bitrate
+		resource.VideoCodec = event.Item.VideoCodec
+		resource.FPS = event.Item.Fps
+		resource.VideoHDR = event.Item.VideoRange
+		if resource.Quality == "" && (event.Item.Width > 0 || event.Item.Height > 0) {
+			resource.Quality = resolutionFromDimensions(event.Item.Width, event.Item.Height)
+		}
+		if resource.Quality != "" && event.Item.VideoRange != "" {
+			lowerQ := strings.ToLower(resource.Quality)
+			if !containsAny(lowerQ, "hdr", "sdr", "dv", "dovi") {
+				resource.Quality = resource.Quality + " " + event.Item.VideoRange
+			}
+		}
+	}
+	return resource
+}
+
+func mediaTitle(item *pb.MediaItemInfo) string {
+	if item == nil {
+		return ""
+	}
+	if strings.TrimSpace(item.SeriesName) != "" {
+		return strings.TrimSpace(item.SeriesName)
+	}
+	return strings.TrimSpace(item.Name)
+}
+
+func resolutionFromDimensions(width, height int32) string {
+	switch {
+	case width >= 3840 || height >= 2160:
+		return "2160p"
+	case width >= 2560 || height >= 1440:
+		return "1440p"
+	case width >= 1920 || height >= 1080:
+		return "1080p"
+	case width >= 1280 || height >= 720:
+		return "720p"
+	default:
+		return ""
+	}
+}
+
+func parseMediaEventYear(event *pb.MediaEvent, values ...string) string {
+	if event != nil && event.Item != nil && event.Item.ProductionYear > 0 {
+		return strconv.Itoa(int(event.Item.ProductionYear))
+	}
+	return parseYear(values...)
 }
 
 func parseSeasonEpisode(name string) (int, int) {

@@ -12,9 +12,14 @@
           <h2>CloudHub 资源推送</h2>
         </div>
         <NText depth="3">
-          STRM 创建、移动、重命名或删除后，将数据库中的网盘文件快照同步到 CloudHub。
+          Emby/Jellyfin 媒体库新增或删除后，将主程序补充的网盘资源信息同步到 CloudHub。
         </NText>
       </header>
+
+      <NAlert type="warning" :show-icon="false" class="setup-alert">
+        CloudHub Push 依赖 Emby/Jellyfin 主动推送 Webhook。请先在系统设置的媒体服务器中复制
+        Webhook URL，再到 Emby/Jellyfin 的 Webhook 配置里启用媒体库新增、删除事件；未配置时插件不会收到媒体事件。
+      </NAlert>
 
       <NAlert v-if="status" :type="statusType" closable @close="status = ''" class="status-alert">
         {{ status }}
@@ -176,6 +181,9 @@ onMounted(loadConfig)
 }
 .plugin-form {
   margin-top: 16px;
+}
+.setup-alert {
+  margin-bottom: 16px;
 }
 .status-alert {
   margin-bottom: 16px;

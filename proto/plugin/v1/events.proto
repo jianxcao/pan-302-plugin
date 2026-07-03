@@ -4,6 +4,7 @@ package plugin.v1;
 option go_package = "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1;pluginv1";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 
 message StrmEvent {
   string event_id = 1;
@@ -42,4 +43,49 @@ message FileSnapshot {
   map<string, string> hashes = 5;
   google.protobuf.Timestamp modified = 6;
   string pick_code = 7;
+}
+
+message MediaEvent {
+  string event_id = 1;
+  string event = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string source = 4;
+  MediaServerInfo server = 5;
+  MediaItemInfo item = 6;
+  google.protobuf.Struct raw = 7;
+  FileSnapshot resource = 8;
+}
+
+message MediaServerInfo {
+  string id = 1;
+  string name = 2;
+  string version = 3;
+  string url = 4;
+}
+
+message MediaItemInfo {
+  string id = 1;
+  string name = 2;
+  string file_name = 3;
+  string path = 4;
+  string type = 5;
+  string media_type = 6;
+  int32 production_year = 7;
+  string series_id = 8;
+  string series_name = 9;
+  string season_id = 10;
+  string season_name = 11;
+  int32 index_number = 12;
+  int32 parent_index_number = 13;
+  bool is_folder = 14;
+  string container = 15;
+  int64 size = 16;
+  int64 bitrate = 17;
+  int32 width = 18;
+  int32 height = 19;
+  int64 runtime_ticks = 20;
+  map<string, string> provider_ids = 21;
+  string video_codec = 22;
+  double fps = 23;
+  string video_range = 24;
 }

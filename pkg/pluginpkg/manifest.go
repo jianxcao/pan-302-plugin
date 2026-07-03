@@ -87,7 +87,9 @@ func (m *Manifest) Validate() error {
 			"strm.deleted",
 			"strm.renamed",
 			"strm.moved",
-			"strm.copied":
+			"strm.copied",
+			"media.item.added",
+			"media.item.deleted":
 		default:
 			return fmt.Errorf("%w: unsupported event %q", ErrInvalidManifest, event)
 		}

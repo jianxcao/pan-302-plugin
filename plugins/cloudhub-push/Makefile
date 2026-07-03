@@ -1,5 +1,5 @@
 PAN302_PLUGIN_CLI ?= ../../bin/pan302-plugin
-VERSION := 1.0.2
+VERSION := 1.0.3
 DIST := dist
 PACKAGE_DIR := $(DIST)/package
 PACKAGE := $(DIST)/cloudhub-push-$(VERSION).panplugin

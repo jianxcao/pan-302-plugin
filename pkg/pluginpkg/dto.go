@@ -69,6 +69,7 @@ var CoreHostOperations = map[string]struct{}{
 	"strm.delete":     {}, // 请求宿主删除本地的 STRM 播放文件
 	"route.handle":    {}, // 向宿主注册插件专有的 Web API 路由路径
 	"event.strm.read": {}, // 读取/拉取 STRM 生成相关的事件
+	"event.media.read": {}, // 读取/拉取媒体服务器 webhook 相关的事件
 	"notify.send":     {}, // 通过宿主通道发送系统级通知（如 Telegram, Webhook 等）
 	"http.request":    {}, // 利用宿主的网络代理发起外部网络 HTTP 请求（突破沙箱限制）
 	"media.server_config.read": {}, // 读取宿主配置的 Emby/Jellyfin 连接信息

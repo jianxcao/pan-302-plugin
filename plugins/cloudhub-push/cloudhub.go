@@ -18,10 +18,9 @@ type Client struct {
 
 type Resource struct {
 	SHA1            string  `json:"sha1"`
-	PreSHA1         string  `json:"pre_sha1,omitempty"`
+	FileId          string  `json:"file_id"`
 	Size            string  `json:"size,omitempty"`
 	Name            string  `json:"name,omitempty"`
-	RawName         string  `json:"raw_name,omitempty"`
 	Path            string  `json:"path,omitempty"`
 	PickCode        string  `json:"pick_code,omitempty"`
 	Title           string  `json:"title,omitempty"`
@@ -85,7 +84,6 @@ func (c *Client) Push(resources []Resource) (*PushResponse, error) {
 	items := make([]Resource, 0, len(resources))
 	for _, item := range resources {
 		item.SHA1 = strings.ToUpper(strings.TrimSpace(item.SHA1))
-		item.PreSHA1 = strings.ToUpper(strings.TrimSpace(item.PreSHA1))
 		item.Path = normalizeCloudHubPath(item.Path)
 		if item.SHA1 == "" {
 			continue

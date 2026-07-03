@@ -24,6 +24,14 @@ func TestManifestValidate(t *testing.T) {
 	require.NoError(t, manifest.Validate())
 }
 
+func TestManifestValidateAllowsMediaEvents(t *testing.T) {
+	manifest := validManifest()
+	manifest.Events = []string{"media.item.added", "media.item.deleted"}
+	manifest.Permissions = append(manifest.Permissions, "event.media.read")
+
+	require.NoError(t, manifest.Validate())
+}
+
 func TestManifestRejectsUnknownHostOperation(t *testing.T) {
 	manifest := validManifest()
 	manifest.Permissions = append(manifest.Permissions, "rsa.verify")
