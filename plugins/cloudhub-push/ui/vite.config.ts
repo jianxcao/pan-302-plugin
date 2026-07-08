@@ -13,7 +13,12 @@ function updateManifestPlugin() {
     name: 'update-manifest',
     writeBundle(options: any, bundle: any) {
       const manifestPath = path.resolve(__dirname, './manifest.json')
+      const mainManifestPath = path.resolve(__dirname, '../manifest.json')
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+      const mainManifest = JSON.parse(fs.readFileSync(mainManifestPath, 'utf-8'))
+
+      // 同步版本号
+      manifest.version = mainManifest.version
 
       let jsFile = ''
       let cssFile = ''
@@ -38,7 +43,7 @@ function updateManifestPlugin() {
       }
 
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2))
-      console.log(`\n✅ 已自动更新 ui/manifest.json: entry=${jsFile}, style=${cssFile}`)
+      console.log(`\n✅ 已自动更新 ui/manifest.json: version=${manifest.version}, entry=${jsFile}, style=${cssFile}`)
     },
   }
 }

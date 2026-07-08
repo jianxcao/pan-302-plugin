@@ -215,6 +215,7 @@ func resourceFromMediaEvent(event *pb.MediaEvent, cfg PluginConfig) Resource {
 	sha1 := file.Hashes["sha1"]
 	resource := Resource{
 		SHA1:      sha1,
+		FileId:    file.Id,
 		Size:      strconv.FormatInt(file.Size, 10),
 		Name:      file.Name,
 		Path:      cloudPath,
@@ -262,7 +263,7 @@ func mediaTitle(item *pb.MediaItemInfo) string {
 
 func resolutionFromDimensions(width, height int32) string {
 	switch {
-	case width >= 3840 || height >= 2160:
+	case width >= 3800 || height >= 2160:
 		return "2160p"
 	case width >= 2560 || height >= 1440:
 		return "1440p"

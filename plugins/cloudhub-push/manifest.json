@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "cloudhub-push",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "displayName": "CloudHub 资源推送",
   "description": "检测到 Emby/Jellyfin 媒体库新增或删除时，自动将主程序补充的网盘资源信息推送到 CloudHub",
   "author": "media302",

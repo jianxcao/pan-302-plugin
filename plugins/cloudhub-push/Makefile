@@ -1,5 +1,5 @@
 PAN302_PLUGIN_CLI ?= ../../bin/pan302-plugin
-VERSION := 1.0.3
+VERSION := $(shell grep '"version":' manifest.json | head -n1 | cut -d'"' -f4)
 DIST := dist
 PACKAGE_DIR := $(DIST)/package
 PACKAGE := $(DIST)/cloudhub-push-$(VERSION).panplugin
