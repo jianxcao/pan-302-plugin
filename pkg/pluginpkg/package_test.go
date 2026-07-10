@@ -373,4 +373,3 @@ func testRuntimeManifest() *Manifest {
 	manifest.Permissions = append(manifest.Permissions, "route.handle")
 	return &manifest
 }
-

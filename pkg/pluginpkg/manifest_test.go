@@ -1,6 +1,7 @@
 package pluginpkg
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,6 +33,12 @@ func TestManifestValidateAllowsMediaEvents(t *testing.T) {
 	require.NoError(t, manifest.Validate())
 }
 
+func TestManifestContainsOnlyStaticEventDeclarations(t *testing.T) {
+	typ := reflect.TypeOf(Manifest{})
+	_, exists := typ.FieldByName("EventSourceFilters")
+	require.False(t, exists)
+}
+
 func TestManifestRejectsUnknownHostOperation(t *testing.T) {
 	manifest := validManifest()
 	manifest.Permissions = append(manifest.Permissions, "rsa.verify")
@@ -48,19 +55,6 @@ func TestManifestRejectsEscapingPath(t *testing.T) {
 
 func TestUIManifestRequiresTrustedESM(t *testing.T) {
 	_, err := ParseUIManifest([]byte(`{
-		"schemaVersion":1,
-		"name":"strm-example-settings",
-		"version":"1.0.0",
-		"protocol":"pan302-plugin-ui/v1",
-		"mode":"trusted-esm",
-		"entry":"index.js"
-	}`))
-	// 注：原测试用的是 "mode":"iframe" 触发校验失败，我们把 "mode" 设为 "iframe" 以测试报错
-	// 现在的 UI Protocol 校验：
-	// ParseUIManifest 需要 mode == "trusted-esm"，且 protocol == UIProtocol
-	// 我们写个会让它失败的测试：
-	// "mode":"iframe"
-	_, err = ParseUIManifest([]byte(`{
 		"schemaVersion":1,
 		"name":"strm-example-settings",
 		"version":"1.0.0",

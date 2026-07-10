@@ -7,75 +7,103 @@ import (
 	pb "github.com/jianxcao/pan-302-plugin/gen/go/plugin/v1"
 )
 
-func TestNormalizeCloudHubPath(t *testing.T) {
-	assertEqual(t, "TV/Movie.mkv", normalizeCloudHubPath(`//TV\\Movie.mkv`))
+type recordingCloudHubClient struct {
+	deletedSHA1s []string
 }
 
-func TestResourceFromMediaEvent(t *testing.T) {
-	event := pb.MediaEvent{
-		EventId: "event-1",
-		Event:   "media.item.added",
-		Item: &pb.MediaItemInfo{
-			Name:              "姜黎非与大师兄相认",
-			SeriesName:        "千香",
-			ProductionYear:    2026,
-			IndexNumber:       13,
-			ParentIndexNumber: 1,
-			Container:         "mkv",
-			Bitrate:           2066995,
-			Width:             3840,
-			Height:            2160,
-			RuntimeTicks:      27380040000,
-			VideoCodec:        "hevc",
-			Fps:               23.976,
+func (c *recordingCloudHubClient) PushInBatches([]Resource, int) (*PushResponse, error) {
+	return &PushResponse{State: true}, nil
+}
+
+func (c *recordingCloudHubClient) DeleteOwners(sha1s []string) (*DeleteOwnersResponse, error) {
+	c.deletedSHA1s = append([]string(nil), sha1s...)
+	return &DeleteOwnersResponse{State: true, DeletedOwners: int64(len(sha1s))}, nil
+}
+
+func TestShouldHandleResourceReady(t *testing.T) {
+	assertEqual(t, true, shouldHandleResourceReady("strm", false))
+	assertEqual(t, false, shouldHandleResourceReady("media", false))
+	assertEqual(t, false, shouldHandleResourceReady("strm", true))
+	assertEqual(t, true, shouldHandleResourceReady("media", true))
+}
+
+func TestResourceFromReadyEvent(t *testing.T) {
+	event := &pb.ResourceReadyEvent{
+		EventId: "strm-1",
+		Event:   "strm.created",
+		Strm:    &pb.StrmEventInfo{CloudPath: "/tv/千香 (2026)/千香.S01E13.2160p.mkv"},
+		File: &pb.FileSnapshot{
+			Id:       "file-1",
+			Name:     "千香.S01E13.2160p.mkv",
+			Path:     "/tv/千香 (2026)/千香.S01E13.2160p.mkv",
+			Size:     707430281,
+			Hashes:   map[string]string{"sha1": "abc"},
+			PickCode: "pick-1",
 		},
-		Resource: &pb.FileSnapshot{
-			Hashes: map[string]string{"sha1": "abc", "presha1": "should-not-send"},
-			Size:   707430281,
-			Name:   "千香 - S01E13 - 第 13 集.mkv",
-			Path:   "/disk/media/tv/china/千香 (2026)/Season 1/千香 - S01E13 - 第 13 集.mkv",
+		Media: &pb.MediaItemInfo{
+			SeriesName: "千香", ProductionYear: 2026, ParentIndexNumber: 1, IndexNumber: 13,
+			Width: 3840, Height: 2160, Container: "mkv", VideoCodec: "hevc", Fps: 23.976,
 		},
 	}
 
-	resource := resourceFromMediaEvent(&event, PluginConfig{NodeID: "test-node"})
+	resource := resourceFromReadyEvent(event, PluginConfig{NodeID: "test-node"})
 	assertEqual(t, "abc", resource.SHA1)
-	assertEqual(t, "千香", resource.Title)
-	assertEqual(t, "千香 - S01E13 - 第 13 集.mkv", resource.Name)
+	assertEqual(t, "file-1", resource.FileId)
+	assertEqual(t, "707430281", resource.Size)
+	assertEqual(t, "千香.S01E13.2160p.mkv", resource.Name)
+	assertEqual(t, "/tv/千香 (2026)/千香.S01E13.2160p.mkv", resource.Path)
+	assertEqual(t, "pick-1", resource.PickCode)
 	assertEqual(t, "tv", resource.Type)
 	assertEqual(t, 1, resource.Season)
 	assertEqual(t, 13, resource.Episode)
+	assertEqual(t, "2160p", resource.Quality)
 	assertEqual(t, "2026", resource.Year)
-	assertEqual(t, "/disk/media/tv/china/千香 (2026)/Season 1/千香 - S01E13 - 第 13 集.mkv", resource.Path)
-	assertEqual(t, "mkv", resource.Container)
-	assertEqual(t, int32(3840), resource.VideoWidth)
-	assertEqual(t, int32(2160), resource.VideoHeight)
-	assertEqual(t, int64(27380040000), resource.RuntimeTicks)
-	assertEqual(t, int64(2066995), resource.Bitrate)
-	assertEqual(t, "hevc", resource.VideoCodec)
-	assertEqual(t, 23.976, resource.FPS)
 	assertEqual(t, "test-node", resource.OwnerName)
-
+	assertEqual(t, "千香", resource.Title)
+	assertEqual(t, int32(3840), resource.VideoWidth)
+	assertEqual(t, "hevc", resource.VideoCodec)
 	payload, err := json.Marshal(resource)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if containsJSONField(payload, "pre_sha1") {
-		t.Fatalf("pre_sha1 should not be sent: %s", payload)
-	}
-	if containsJSONField(payload, "raw_name") {
-		t.Fatalf("raw_name should not be sent: %s", payload)
+	if containsJSONField(payload, "pre_sha1") || containsJSONField(payload, "raw_name") {
+		t.Fatalf("unexpected legacy fields: %s", payload)
 	}
 }
 
-func TestHandleMediaEventSkipsMissingResource(t *testing.T) {
-	event := pb.MediaEvent{
-		EventId: "event-1",
-		Event:   "media.item.added",
+func TestHandleStrmDeletedUsesSnapshotSHA1(t *testing.T) {
+	client := &recordingCloudHubClient{}
+	event := &pb.StrmEvent{
+		EventId: "strm-delete-1",
+		Event:   "strm.deleted",
+		Strm:    &pb.StrmEventInfo{CloudPath: "/movies/movie.mkv"},
+		File:    &pb.FileSnapshot{Hashes: map[string]string{"sha1": "sha1-before-delete"}},
 	}
 
-	if err := handleMediaEvent(&event); err != nil {
-		t.Fatalf("expected missing media resource to be skipped, got %v", err)
+	if err := handleStrmEventWithConfig(event, PluginConfig{}, client); err != nil {
+		t.Fatal(err)
 	}
+	assertEqual(t, 1, len(client.deletedSHA1s))
+	assertEqual(t, "sha1-before-delete", client.deletedSHA1s[0])
+}
+
+func TestHandleStrmDeletedWithoutSHA1SkipsDelete(t *testing.T) {
+	client := &recordingCloudHubClient{}
+	event := &pb.StrmEvent{
+		EventId: "strm-delete-dir",
+		Event:   "strm.deleted",
+		Strm:    &pb.StrmEventInfo{CloudPath: "/movies/season"},
+		File:    &pb.FileSnapshot{Path: "/movies/season"},
+	}
+
+	if err := handleStrmEventWithConfig(event, PluginConfig{}, client); err != nil {
+		t.Fatal(err)
+	}
+	assertEqual(t, 0, len(client.deletedSHA1s))
+}
+
+func TestNormalizeCloudHubPath(t *testing.T) {
+	assertEqual(t, "TV/Movie.mkv", normalizeCloudHubPath(`//TV\\Movie.mkv`))
 }
 
 func assertEqual[T comparable](t *testing.T, expected, actual T) {

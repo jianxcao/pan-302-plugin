@@ -89,3 +89,17 @@ message MediaItemInfo {
   double fps = 23;
   string video_range = 24;
 }
+
+message ResourceReadyEvent {
+  string event_id = 1;
+  string event = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string source = 4;
+  string origin_plugin = 5;
+  DriverEventInfo driver = 6;
+  StrmEventInfo strm = 7;
+  FileSnapshot file = 8;
+  MediaItemInfo media = 9;
+  string enrichment_status = 10;
+  uint32 enrichment_attempts = 11;
+}

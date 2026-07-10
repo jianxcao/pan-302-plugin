@@ -4,5 +4,6 @@
   "node_id": "",
   "public_base_url": "",
   "batch_size": 500,
-  "include_paths": []
+  "include_paths": [],
+  "use_media_added_event": false
 }
