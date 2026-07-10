@@ -12,13 +12,12 @@
           <h2>CloudHub 资源推送</h2>
         </div>
         <NText depth="3">
-          Emby/Jellyfin 媒体库新增或删除后，将主程序补充的网盘资源信息同步到 CloudHub。
+          默认在 STRM 创建 120 秒后推送资源，删除始终跟随 STRM 删除事件。
         </NText>
       </header>
 
       <NAlert type="warning" :show-icon="false" class="setup-alert">
-        CloudHub Push 依赖 Emby/Jellyfin 主动推送 Webhook。请先在系统设置的媒体服务器中复制
-        Webhook URL，再到 Emby/Jellyfin 的 Webhook 配置里启用媒体库新增、删除事件；未配置时插件不会收到媒体事件。
+        仅当开启“使用媒体库新增事件”时，才需要在 Emby/Jellyfin Webhook 中启用媒体库新增事件；无需监听媒体删除事件。
       </NAlert>
 
       <NAlert v-if="status" :type="statusType" closable @close="status = ''" class="status-alert">
@@ -55,6 +54,13 @@
           <NDynamicInput v-model:value="config.include_paths" placeholder="例如 /电影" />
         </NFormItem>
 
+        <NFormItem label="使用媒体库新增事件" path="use_media_added_event">
+          <NSwitch v-model:value="config.use_media_added_event" />
+          <template #feedback>
+            默认关闭：STRM 创建 120 秒后推送。开启后仅在 Emby/Jellyfin 新增媒体时推送；删除始终使用 STRM 删除事件。
+          </template>
+        </NFormItem>
+
         <NSpace justify="end">
           <NButton type="primary" :loading="loading" @click="saveConfig">保存设置</NButton>
         </NSpace>
@@ -76,6 +82,7 @@ import {
   NSpace,
   NButton,
   NDynamicInput,
+  NSwitch,
 } from 'naive-ui'
 
 const props = defineProps<{
@@ -93,6 +100,7 @@ const config = ref({
   public_base_url: '',
   batch_size: 500,
   include_paths: [] as string[],
+  use_media_added_event: false,
 })
 
 const loading = ref(false)

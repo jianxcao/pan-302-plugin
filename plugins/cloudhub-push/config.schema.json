@@ -33,6 +33,12 @@
       },
       "title": "包含路径",
       "description": "只有包含在这个数组内的路径才会通知 CloudHub，留空则通知所有路径"
+    },
+    "use_media_added_event": {
+      "type": "boolean",
+      "title": "使用媒体库新增事件",
+      "description": "开启后使用 Emby/Jellyfin 媒体新增事件推送；关闭时使用延迟 120 秒的 STRM 新增事件。",
+      "default": false
     }
   },
   "required": [

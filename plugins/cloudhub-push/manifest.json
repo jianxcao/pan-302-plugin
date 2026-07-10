@@ -1,23 +1,23 @@
 {
   "schemaVersion": 1,
   "name": "cloudhub-push",
-  "version": "1.0.4",
+  "version": "1.2.1",
   "displayName": "CloudHub 资源推送",
-  "description": "检测到 Emby/Jellyfin 媒体库新增或删除时，自动将主程序补充的网盘资源信息推送到 CloudHub",
+  "description": "通过 STRM 创建/删除事件或可选的媒体库新增事件，将网盘资源信息同步到 CloudHub",
   "author": "media302",
   "abi": "pan302-plugin-abi/v2",
   "wasm": "plugin.wasm",
   "configVersion": 1,
   "events": [
-    "media.item.added",
-    "media.item.deleted"
+    "strm.deleted",
+    "resource.ready"
   ],
   "permissions": [
     "log.write",
     "config.read",
     "http.request",
-    "media.server_config.read",
-    "event.media.read"
+    "event.strm.read",
+    "event.resource.read"
   ],
   "ui": {
     "manifest": "ui/manifest.json",
